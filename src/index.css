@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Horizontal movie rows: visible drag/scroll, no visible scrollbar */
+.row-scroll {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.row-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Keyboard focus visibility, kept intentional rather than default blue */
+:focus-visible {
+  outline: 2px solid #ff5566;
+  outline-offset: 2px;
+}
+
+/* Native <select> popups otherwise render with light-on-light text since
+   the browser doesn't know this is a dark-themed page. */
+select {
+  color-scheme: dark;
+}
+
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.animate-marquee-left {
+  animation: marquee-left 60s linear infinite;
+}
+.animate-marquee-right {
+  animation: marquee-right 75s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,52 @@
+import { useEffect, useState } from 'react';
+import { getPopular, getTopRated, getNowPlaying } from '../lib/tmdb';
+import MovieCard from '../components/MovieCard';
+import LoadingSpinner from '../components/LoadingSpinner';
+
+const SORTS = [
+  { key: 'popular', label: 'Most Popular', fetcher: () => getPopular('movie') },
+  { key: 'top_rated', label: 'Highest Rated', fetcher: () => getTopRated('movie') },
+  { key: 'now_playing', label: 'Newest', fetcher: () => getNowPlaying() },
+];
+
+export default function Movies() {
+  const [sortKey, setSortKey] = useState('popular');
+  const [items, setItems] = useState(null);
+
+  useEffect(() => {
+    setItems(null);
+    const sort = SORTS.find((s) => s.key === sortKey);
+    sort.fetcher().then((res) => setItems(res.results));
+  }, [sortKey]);
+
+  return (
+    <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-8">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold">Movies</h1>
+        <div className="flex gap-2">
+          {SORTS.map((s) => (
+            <button
+              key={s.key}
+              onClick={() => setSortKey(s.key)}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
+                sortKey === s.key ? 'bg-crimson-600 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10'
+              }`}
+            >
+              {s.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!items ? (
+        <LoadingSpinner />
+      ) : (
+        <div className="flex flex-wrap gap-4">
+          {items.map((item) => (
+            <MovieCard key={item.id} item={{ ...item, media_type: 'movie' }} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
