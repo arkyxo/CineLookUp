@@ -74,6 +74,10 @@ export default function MovieDetails() {
   const cast = data.credits?.cast?.slice(0, 10) || [];
   const trailerKey = getTrailerKey(data.videos);
 
+  const providerResults = data['watch/providers']?.results || {};
+  const detectedRegion = (navigator.language?.split('-')[1] || 'US').toUpperCase();
+  const providers = providerResults[detectedRegion] || providerResults.US;
+
   const requireAuth = () => {
     if (!user) navigate('/login');
     return !!user;
@@ -174,6 +178,57 @@ export default function MovieDetails() {
               >
                 Write a Review
               </button>
+            )}
+          </div>
+
+          <div className="mt-6">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
+              Where to Watch
+            </p>
+            {providers?.flatrate?.length > 0 ? (
+              <div className="flex flex-wrap gap-3">
+                {providers.flatrate.map((p) => (
+                  <div key={p.provider_id} className="flex flex-col items-center gap-1" title={p.provider_name}>
+                    <img
+                      src={imageUrl(p.logo_path, 'w92')}
+                      alt={p.provider_name}
+                      className="h-10 w-10 rounded-lg ring-1 ring-white/10"
+                    />
+                    <span className="max-w-[56px] text-center text-[10px] leading-tight text-white/50 line-clamp-2">
+                      {p.provider_name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ) : providers?.rent?.length > 0 || providers?.buy?.length > 0 ? (
+              <div>
+                <p className="mb-1.5 text-[11px] text-white/40">Not on a subscription — available to rent or buy</p>
+                <div className="flex flex-wrap gap-3">
+                  {[...(providers.rent || []), ...(providers.buy || [])]
+                    .filter((p, i, arr) => arr.findIndex((x) => x.provider_id === p.provider_id) === i)
+                    .map((p) => (
+                      <img
+                        key={p.provider_id}
+                        src={imageUrl(p.logo_path, 'w92')}
+                        alt={p.provider_name}
+                        title={p.provider_name}
+                        className="h-10 w-10 rounded-lg ring-1 ring-white/10"
+                      />
+                    ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-xs text-white/30">Streaming availability isn't listed for your region.</p>
+            )}
+            {providers?.link && (
+              <a
+                href={providers.link}
+                target="_blank"
+                rel="noreferrer"
+                className="mt-3 inline-block text-[11px] text-white/30 hover:text-white/50"
+              >
+                Streaming data provided by JustWatch
+              </a>
             )}
           </div>
         </div>
