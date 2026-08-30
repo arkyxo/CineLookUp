@@ -9,7 +9,7 @@ const LINKS = [
   { to: '/', label: 'Home' },
   { to: '/movies', label: 'Movies' },
   { to: '/genres', label: 'Genres' },
-  { to: '/watchlist', label: 'Watchlist' },
+  { to: '/reviews', label: 'Reviews' },
   { to: '/private-list', label: 'Private List' },
 ];
 
