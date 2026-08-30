@@ -1,9 +1,36 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { X, Play, Info, Star } from 'lucide-react';
+import { X, Play, Info, Star, ArrowLeft } from 'lucide-react';
 import { imageUrl } from '../lib/tmdb';
+import { useAuth } from '../context/AuthContext';
+import { getReview, setReview } from '../lib/firebase';
+import { useToast } from '../context/ToastContext';
+import StarRating from './StarRating';
 
-export default function MovieQuickView({ item, onClose, onPlayTrailer }) {
+export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMode = 'info', onReviewSaved }) {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { showToast } = useToast();
+
+  const [mode, setMode] = useState(initialMode);
+  const [myReview, setMyReview] = useState(null);
+  const [draftRating, setDraftRating] = useState(0);
+  const [draftText, setDraftText] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [item, initialMode]);
+
+  useEffect(() => {
+    if (!item || !user) return;
+    getReview(user.uid, item.id).then((existing) => {
+      setMyReview(existing);
+      setDraftRating(existing?.rating || 0);
+      setDraftText(existing?.review || '');
+    });
+  }, [item, user]);
+
   if (!item) return null;
 
   const title = item.title || item.name;
@@ -18,6 +45,21 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer }) {
   const handleTrailer = () => {
     onClose();
     onPlayTrailer(item);
+  };
+
+  const submitReview = async () => {
+    if (!user || draftRating === 0) return;
+    setSaving(true);
+    try {
+      await setReview(user.uid, { ...item, media_type: mediaType }, draftRating, draftText, user.displayName);
+      const saved = { rating: draftRating, review: draftText };
+      setMyReview(saved);
+      onReviewSaved?.(saved);
+      showToast(myReview ? 'Review updated' : 'Review posted');
+      setMode('info');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -57,24 +99,76 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer }) {
             {year && <span>{year}</span>}
           </div>
 
-          {item.overview && (
-            <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-white/70">{item.overview}</p>
-          )}
+          {mode === 'info' ? (
+            <>
+              {item.overview && (
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-white/70">{item.overview}</p>
+              )}
 
-          <div className="mt-5 flex gap-3">
-            <button
-              onClick={handleTrailer}
-              className="flex flex-1 items-center justify-center gap-2 rounded-md bg-crimson-600 px-4 py-2.5 text-sm font-semibold hover:bg-crimson-500"
-            >
-              <Play size={15} className="fill-white" /> Watch Trailer
-            </button>
-            <button
-              onClick={goToFullInfo}
-              className="flex flex-1 items-center justify-center gap-2 rounded-md bg-white/10 px-4 py-2.5 text-sm font-semibold hover:bg-white/20"
-            >
-              <Info size={15} /> Full Info
-            </button>
-          </div>
+              <div className="mt-5 flex gap-3">
+                <button
+                  onClick={handleTrailer}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-md bg-crimson-600 px-4 py-2.5 text-sm font-semibold hover:bg-crimson-500"
+                >
+                  <Play size={15} className="fill-white" /> Watch Trailer
+                </button>
+                <button
+                  onClick={goToFullInfo}
+                  className="flex flex-1 items-center justify-center gap-2 rounded-md bg-white/10 px-4 py-2.5 text-sm font-semibold hover:bg-white/20"
+                >
+                  <Info size={15} /> Full Info
+                </button>
+              </div>
+
+              {user && (
+                <div className="mt-4 border-t border-white/10 pt-4">
+                  {myReview ? (
+                    <div className="flex items-center justify-between">
+                      <StarRating value={myReview.rating} readOnly size={16} />
+                      <button
+                        onClick={() => setMode('review')}
+                        className="text-xs font-medium text-crimson-400 hover:underline"
+                      >
+                        Edit Review
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setMode('review')}
+                      className="w-full rounded-md border border-white/15 py-2 text-sm font-semibold text-white/80 hover:bg-white/5"
+                    >
+                      Review
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="mt-4">
+              <button
+                onClick={() => setMode('info')}
+                className="mb-3 flex items-center gap-1 text-xs text-white/50 hover:text-white"
+              >
+                <ArrowLeft size={12} /> Back
+              </button>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/50">Your Rating</p>
+              <StarRating value={draftRating} onChange={setDraftRating} size={22} />
+              <textarea
+                value={draftText}
+                onChange={(e) => setDraftText(e.target.value)}
+                placeholder="Write a review… (optional)"
+                rows={4}
+                className="mt-3 w-full resize-none rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 focus:border-crimson-500"
+              />
+              <button
+                onClick={submitReview}
+                disabled={draftRating === 0 || saving}
+                className="mt-3 w-full rounded-md bg-crimson-600 py-2.5 text-sm font-semibold hover:bg-crimson-500 disabled:opacity-50"
+              >
+                {saving ? 'Saving…' : myReview ? 'Update Review' : 'Post Review'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
