@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MovieCard from './MovieCard';
 
-export default function MovieRow({ title, items, watchlistIds, onToggleWatchlist }) {
+export default function MovieRow({ title, items, watchlistIds, onToggleWatchlist, onOpenModal }) {
   const scrollRef = useRef(null);
 
   if (!items?.length) return null;
@@ -30,6 +30,7 @@ export default function MovieRow({ title, items, watchlistIds, onToggleWatchlist
             item={item}
             inWatchlist={watchlistIds?.has(item.id)}
             onToggleWatchlist={onToggleWatchlist}
+            onOpenModal={onOpenModal}
           />
         ))}
       </div>

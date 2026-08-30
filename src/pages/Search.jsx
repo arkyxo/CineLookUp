@@ -3,8 +3,9 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { SearchX } from 'lucide-react';
 import { searchMulti, imageUrl } from '../lib/tmdb';
 import MovieCard from '../components/MovieCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { SkeletonGrid } from '../components/Skeleton';
 import EmptyState from '../components/EmptyState';
+import ErrorState from '../components/ErrorState';
 
 export default function Search() {
   const [params] = useSearchParams();
@@ -13,6 +14,8 @@ export default function Search() {
 
   const [results, setResults] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     if (!query) {
@@ -21,16 +24,30 @@ export default function Search() {
       return;
     }
     setLoading(true);
-    searchMulti(query).then((res) => {
-      setResults(res.results.filter((r) => r.media_type !== 'person' || r.profile_path));
-      setLoading(false);
-    });
-  }, [query]);
+    setError(false);
+    searchMulti(query)
+      .then((res) => {
+        setResults(res.results.filter((r) => r.media_type !== 'person' || r.profile_path));
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
+  }, [query, reloadKey]);
 
   const titles = results?.filter((r) => r.media_type === 'movie' || r.media_type === 'tv') || [];
   const people = results?.filter((r) => r.media_type === 'person') || [];
 
-  if (loading) return <LoadingSpinner label="Searching…" />;
+  if (error) return <ErrorState title="Search failed" onRetry={() => setReloadKey((k) => k + 1)} />;
+
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-8">
+        <SkeletonGrid />
+      </div>
+    );
+  }
 
   if (!query || (titles.length === 0 && people.length === 0)) {
     return (

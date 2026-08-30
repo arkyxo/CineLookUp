@@ -3,7 +3,8 @@ import { useParams, Link } from 'react-router-dom';
 import { ChevronRight, SlidersHorizontal, ChevronDown } from 'lucide-react';
 import { getGenreList, discoverByGenre } from '../lib/tmdb';
 import MovieCard from '../components/MovieCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { SkeletonGrid } from '../components/Skeleton';
+import ErrorState from '../components/ErrorState';
 
 const BLURBS = {
   Action: 'High-stakes chases, stunts, and set pieces that never let up.',
@@ -67,6 +68,8 @@ function GenreDetail({ genreId, genres }) {
   const [loadingMore, setLoadingMore] = useState(false);
   const [sortKey, setSortKey] = useState('trending');
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const rawGenreName = genres.find((g) => String(g.id) === genreId)?.name || 'Genre';
   const displayName = DISPLAY_NAME[rawGenreName] || rawGenreName;
@@ -74,12 +77,15 @@ function GenreDetail({ genreId, genres }) {
 
   useEffect(() => {
     setItems(null);
+    setError(false);
     setPage(1);
-    discoverByGenre(genreId, { sortBy, page: 1 }).then((res) => {
-      setItems(res.results);
-      setTotalPages(res.total_pages);
-    });
-  }, [genreId, sortBy]);
+    discoverByGenre(genreId, { sortBy, page: 1 })
+      .then((res) => {
+        setItems(res.results);
+        setTotalPages(res.total_pages);
+      })
+      .catch(() => setError(true));
+  }, [genreId, sortBy, reloadKey]);
 
   const loadMore = async () => {
     setLoadingMore(true);
@@ -147,8 +153,10 @@ function GenreDetail({ genreId, genres }) {
       )}
 
       <div className="mt-8">
-        {!items ? (
-          <LoadingSpinner />
+        {error ? (
+          <ErrorState onRetry={() => setReloadKey((k) => k + 1)} />
+        ) : !items ? (
+          <SkeletonGrid />
         ) : (
           <>
             <div className="flex flex-wrap gap-4">

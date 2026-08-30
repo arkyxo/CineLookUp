@@ -14,11 +14,15 @@ import StarRating from '../components/StarRating';
 import TrailerModal from '../components/TrailerModal';
 import MovieRow from '../components/MovieRow';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorState from '../components/ErrorState';
+import NotFound from './NotFound';
+import { useToast } from '../context/ToastContext';
 
 export default function MovieDetails() {
   const { mediaType, id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [data, setData] = useState(null);
   const [trailerOpen, setTrailerOpen] = useState(false);
@@ -26,16 +30,27 @@ export default function MovieDetails() {
   const [inPrivateList, setInPrivateList] = useState(false);
   const [myRating, setMyRating] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+
+  const validMediaType = mediaType === 'movie' || mediaType === 'tv';
 
   useEffect(() => {
+    if (!validMediaType) return;
     setLoading(true);
+    setError(false);
     const fetcher = mediaType === 'tv' ? getTvDetails : getMovieDetails;
-    fetcher(id).then((details) => {
-      setData(details);
-      setLoading(false);
-    });
+    fetcher(id)
+      .then((details) => {
+        setData(details);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
     window.scrollTo(0, 0);
-  }, [mediaType, id]);
+  }, [mediaType, id, reloadKey, validMediaType]);
 
   useEffect(() => {
     if (!user || !data) return;
@@ -44,7 +59,11 @@ export default function MovieDetails() {
     getRating(user.uid, data.id).then(setMyRating);
   }, [user, data]);
 
-  if (loading || !data) return <LoadingSpinner label="Loading title…" />;
+  if (!validMediaType) return <NotFound />;
+  if (loading) return <LoadingSpinner label="Loading title…" />;
+  if (error || !data) {
+    return <ErrorState title="Couldn't load this title" onRetry={() => setReloadKey((k) => k + 1)} />;
+  }
 
   const title = data.title || data.name;
   const year = (data.release_date || data.first_air_date || '').slice(0, 4);
@@ -60,10 +79,13 @@ export default function MovieDetails() {
 
   const toggleList = async (listName, isIn, setIsIn) => {
     if (!requireAuth()) return;
+    const label = listName === 'watchlist' ? 'Watchlist' : 'Private List';
     if (isIn) {
       await removeFromList(user.uid, listName, data.id);
+      showToast(`Removed from ${label}`);
     } else {
       await addToList(user.uid, listName, { ...data, media_type: mediaType });
+      showToast(`Added to ${label}`);
     }
     setIsIn(!isIn);
   };
@@ -72,6 +94,7 @@ export default function MovieDetails() {
     if (!requireAuth()) return;
     setMyRating(n);
     await setRating(user.uid, { ...data, media_type: mediaType }, n);
+    showToast(`Rated ${n} star${n > 1 ? 's' : ''}`);
   };
 
   return (

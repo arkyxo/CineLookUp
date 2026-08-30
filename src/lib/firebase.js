@@ -72,6 +72,7 @@ export const addToList = (uid, listName, item) =>
     posterPath: item.poster_path || null,
     voteAverage: item.vote_average ?? null,
     releaseDate: item.release_date || item.first_air_date || null,
+    genreIds: item.genre_ids || (item.genres || []).map((g) => g.id),
     addedAt: Date.now(),
   });
 

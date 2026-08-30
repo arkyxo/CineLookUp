@@ -1,17 +1,21 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { signUp } from '../lib/firebase';
+import { useAttemptLimiter } from '../hooks/useAttemptLimiter';
 
 export default function Signup() {
+  const [params] = useSearchParams();
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(params.get('email') || '');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { locked, secondsLeft, registerFailure, reset } = useAttemptLimiter(4, 30000);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (locked) return;
     setError('');
     if (password.length < 6) {
       setError('Password must be at least 6 characters.');
@@ -20,8 +24,10 @@ export default function Signup() {
     setLoading(true);
     try {
       await signUp(email, password, username);
+      reset();
       navigate('/');
     } catch (err) {
+      registerFailure();
       setError(friendlyError(err.code));
     } finally {
       setLoading(false);
@@ -65,14 +71,18 @@ export default function Signup() {
             />
           </div>
 
-          {error && <p className="text-sm text-crimson-400">{error}</p>}
+          {locked ? (
+            <p className="text-sm text-crimson-400">Too many attempts. Try again in {secondsLeft}s.</p>
+          ) : (
+            error && <p className="text-sm text-crimson-400">{error}</p>
+          )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || locked}
             className="mt-2 rounded-md bg-crimson-600 py-2.5 text-sm font-semibold hover:bg-crimson-500 disabled:opacity-50"
           >
-            {loading ? 'Creating account…' : 'Sign Up'}
+            {locked ? `Try again in ${secondsLeft}s` : loading ? 'Creating account…' : 'Sign Up'}
           </button>
         </form>
 

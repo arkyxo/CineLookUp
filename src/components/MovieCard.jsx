@@ -2,16 +2,21 @@ import { useNavigate } from 'react-router-dom';
 import { Star, Plus, Check } from 'lucide-react';
 import { imageUrl } from '../lib/tmdb';
 
-export default function MovieCard({ item, inWatchlist = false, onToggleWatchlist }) {
+export default function MovieCard({ item, inWatchlist = false, onToggleWatchlist, onOpenModal }) {
   const navigate = useNavigate();
   const title = item.title || item.name;
   const year = (item.release_date || item.first_air_date || '').slice(0, 4);
   const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
 
+  const handleClick = () => {
+    if (onOpenModal) onOpenModal(item);
+    else navigate(`/${mediaType}/${item.id}`);
+  };
+
   return (
     <div
       className="group relative w-[160px] sm:w-[180px] flex-shrink-0 cursor-pointer"
-      onClick={() => navigate(`/${mediaType}/${item.id}`)}
+      onClick={handleClick}
     >
       <div className="relative aspect-[2/3] overflow-hidden rounded-lg bg-base-800 ring-1 ring-white/5 transition-transform duration-300 group-hover:scale-105 group-hover:ring-crimson-500/50">
         {item.poster_path ? (

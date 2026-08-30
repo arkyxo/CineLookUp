@@ -17,6 +17,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
+import NotFound from './pages/NotFound';
 
 // Logged-out visitors get the marketing landing page at "/";
 // once signed in, "/" becomes the browsing home.
@@ -72,6 +73,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
     </div>

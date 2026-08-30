@@ -2,17 +2,25 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPersonDetails, imageUrl } from '../lib/tmdb';
 import LoadingSpinner from '../components/LoadingSpinner';
+import ErrorState from '../components/ErrorState';
 
 export default function Person() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [person, setPerson] = useState(null);
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    getPersonDetails(id).then(setPerson);
+    setPerson(null);
+    setError(false);
+    getPersonDetails(id)
+      .then(setPerson)
+      .catch(() => setError(true));
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, reloadKey]);
 
+  if (error) return <ErrorState title="Couldn't load this person" onRetry={() => setReloadKey((k) => k + 1)} />;
   if (!person) return <LoadingSpinner />;
 
   const credits = (person.combined_credits?.cast || [])

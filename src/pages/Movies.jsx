@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { getPopular, getTopRated, getNowPlaying } from '../lib/tmdb';
 import MovieCard from '../components/MovieCard';
-import LoadingSpinner from '../components/LoadingSpinner';
+import { SkeletonGrid } from '../components/Skeleton';
+import ErrorState from '../components/ErrorState';
 
 const SORTS = [
   { key: 'popular', label: 'Most Popular', fetcher: () => getPopular('movie') },
@@ -12,12 +13,18 @@ const SORTS = [
 export default function Movies() {
   const [sortKey, setSortKey] = useState('popular');
   const [items, setItems] = useState(null);
+  const [error, setError] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     setItems(null);
+    setError(false);
     const sort = SORTS.find((s) => s.key === sortKey);
-    sort.fetcher().then((res) => setItems(res.results));
-  }, [sortKey]);
+    sort
+      .fetcher()
+      .then((res) => setItems(res.results))
+      .catch(() => setError(true));
+  }, [sortKey, reloadKey]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-8">
@@ -38,8 +45,10 @@ export default function Movies() {
         </div>
       </div>
 
-      {!items ? (
-        <LoadingSpinner />
+      {error ? (
+        <ErrorState onRetry={() => setReloadKey((k) => k + 1)} />
+      ) : !items ? (
+        <SkeletonGrid />
       ) : (
         <div className="flex flex-wrap gap-4">
           {items.map((item) => (

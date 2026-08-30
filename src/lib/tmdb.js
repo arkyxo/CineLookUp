@@ -13,6 +13,45 @@ export const GENRE_IDS = {
   Drama: 18,
 };
 
+// ---- Response cache ----
+// Repeat visits to the same movie/genre/trending endpoint are common
+// (revisiting Home, reopening a title you just viewed, etc.), so cache
+// responses for a few minutes instead of re-hitting TMDb every time.
+// Backed by localStorage so it survives reloads, falling back to an
+// in-memory Map if storage is unavailable (private browsing, quota, etc.).
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+const memCache = new Map();
+
+function cacheGet(key) {
+  const mem = memCache.get(key);
+  if (mem && Date.now() - mem.time < CACHE_TTL) return mem.data;
+
+  try {
+    const raw = localStorage.getItem(`tmdb-cache:${key}`);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Date.now() - parsed.time < CACHE_TTL) {
+        memCache.set(key, parsed);
+        return parsed.data;
+      }
+      localStorage.removeItem(`tmdb-cache:${key}`);
+    }
+  } catch {
+    // localStorage unavailable — in-memory cache above still applies for this session.
+  }
+  return null;
+}
+
+function cacheSet(key, data) {
+  const entry = { data, time: Date.now() };
+  memCache.set(key, entry);
+  try {
+    localStorage.setItem(`tmdb-cache:${key}`, JSON.stringify(entry));
+  } catch {
+    // Storage full or unavailable — safe to ignore, falls back to in-memory only.
+  }
+}
+
 async function tmdbFetch(endpoint, params = {}) {
   const url = new URL(`${BASE_URL}${endpoint}`);
   url.searchParams.set('api_key', API_KEY);
@@ -20,11 +59,17 @@ async function tmdbFetch(endpoint, params = {}) {
     if (v !== undefined && v !== null) url.searchParams.set(k, v);
   });
 
-  const res = await fetch(url.toString());
+  const cacheKey = url.toString();
+  const cached = cacheGet(cacheKey);
+  if (cached) return cached;
+
+  const res = await fetch(cacheKey);
   if (!res.ok) {
     throw new Error(`TMDb request failed (${res.status}): ${endpoint}`);
   }
-  return res.json();
+  const data = await res.json();
+  cacheSet(cacheKey, data);
+  return data;
 }
 
 export const imageUrl = (path, size = 'w500') =>
@@ -59,6 +104,9 @@ export const discoverByGenre = (genreId, { mediaType = 'movie', page = 1, sortBy
 
 export const getPersonDetails = (id) =>
   tmdbFetch(`/person/${id}`, { append_to_response: 'combined_credits' });
+
+export const getRecommendations = (id, mediaType = 'movie') =>
+  tmdbFetch(`/${mediaType}/${id}/recommendations`);
 
 // Pull the first official YouTube trailer out of a videos.results array.
 export const getTrailerKey = (videos) => {
