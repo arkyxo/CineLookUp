@@ -9,9 +9,10 @@ import {
   getDirector,
 } from '../lib/tmdb';
 import { useAuth } from '../context/AuthContext';
-import { addToList, removeFromList, isInList, setRating, getRating } from '../lib/firebase';
+import { addToList, removeFromList, isInList, getReview } from '../lib/firebase';
 import StarRating from '../components/StarRating';
 import TrailerModal from '../components/TrailerModal';
+import MovieQuickView from '../components/MovieQuickView';
 import MovieRow from '../components/MovieRow';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
@@ -26,9 +27,10 @@ export default function MovieDetails() {
 
   const [data, setData] = useState(null);
   const [trailerOpen, setTrailerOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [inPrivateList, setInPrivateList] = useState(false);
-  const [myRating, setMyRating] = useState(0);
+  const [myReview, setMyReview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
@@ -56,7 +58,7 @@ export default function MovieDetails() {
     if (!user || !data) return;
     isInList(user.uid, 'watchlist', data.id).then(setInWatchlist);
     isInList(user.uid, 'privateList', data.id).then(setInPrivateList);
-    getRating(user.uid, data.id).then(setMyRating);
+    getReview(user.uid, data.id).then(setMyReview);
   }, [user, data]);
 
   if (!validMediaType) return <NotFound />;
@@ -88,13 +90,6 @@ export default function MovieDetails() {
       showToast(`Added to ${label}`);
     }
     setIsIn(!isIn);
-  };
-
-  const rate = async (n) => {
-    if (!requireAuth()) return;
-    setMyRating(n);
-    await setRating(user.uid, { ...data, media_type: mediaType }, n);
-    showToast(`Rated ${n} star${n > 1 ? 's' : ''}`);
   };
 
   return (
@@ -160,9 +155,26 @@ export default function MovieDetails() {
 
           <div className="mt-6">
             <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/50">
-              Your Rating
+              Your Review
             </p>
-            <StarRating value={myRating} onChange={rate} />
+            {myReview ? (
+              <div className="flex items-center gap-3">
+                <StarRating value={myReview.rating} readOnly size={18} />
+                <button
+                  onClick={() => (requireAuth() ? setReviewOpen(true) : null)}
+                  className="text-xs font-medium text-crimson-400 hover:underline"
+                >
+                  Edit Review
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => (requireAuth() ? setReviewOpen(true) : null)}
+                className="rounded-md bg-white/10 px-5 py-2 text-sm font-semibold hover:bg-white/20"
+              >
+                Write a Review
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -198,6 +210,16 @@ export default function MovieDetails() {
 
       {trailerOpen && (
         <TrailerModal videoKey={trailerKey} title={title} onClose={() => setTrailerOpen(false)} />
+      )}
+
+      {reviewOpen && (
+        <MovieQuickView
+          item={{ ...data, media_type: mediaType }}
+          initialMode="review"
+          onClose={() => setReviewOpen(false)}
+          onPlayTrailer={() => setTrailerOpen(true)}
+          onReviewSaved={setMyReview}
+        />
       )}
     </div>
   );
