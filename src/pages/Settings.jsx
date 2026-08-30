@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { updateUsername, changePassword, deleteAccount } from '../lib/firebase';
+import { regenerateUsername, changePassword, deleteAccount } from '../lib/firebase';
 
 export default function Settings() {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  const [username, setUsername] = useState(user.displayName || '');
+  const [username, setUsernameDisplay] = useState(user.displayName || '');
   const [nameStatus, setNameStatus] = useState('');
   const [nameSaving, setNameSaving] = useState(false);
 
@@ -23,15 +23,15 @@ export default function Settings() {
   const [deleteError, setDeleteError] = useState('');
   const [deleting, setDeleting] = useState(false);
 
-  const saveUsername = async (e) => {
-    e.preventDefault();
+  const handleRegenerate = async () => {
     setNameSaving(true);
     setNameStatus('');
     try {
-      await updateUsername(username.trim());
-      setNameStatus('Saved.');
+      const next = await regenerateUsername(user.uid, user.displayName);
+      setUsernameDisplay(next);
+      setNameStatus('New username assigned.');
     } catch {
-      setNameStatus('Could not save. Try again.');
+      setNameStatus('Could not generate a new username. Try again.');
     } finally {
       setNameSaving(false);
     }
@@ -83,27 +83,28 @@ export default function Settings() {
 
       <h1 className="text-2xl font-semibold">Settings</h1>
 
-      <form onSubmit={saveUsername} className="mt-8 rounded-xl border border-white/10 bg-base-850 p-6">
+      <div className="mt-8 rounded-xl border border-white/10 bg-base-850 p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-white/50">Profile</h2>
-        <label className="mb-1 mt-4 block text-xs font-medium text-white/60">Username</label>
-        <input
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
-        />
-        <div className="mt-2 text-xs text-white/40">{user.email}</div>
-
-        <div className="mt-4 flex items-center gap-3">
+        <p className="mb-1 mt-4 text-xs font-medium text-white/60">Username</p>
+        <div className="flex items-center gap-3">
+          <span className="rounded-md border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-semibold tracking-wide">
+            {username}
+          </span>
           <button
-            type="submit"
-            disabled={nameSaving || !username.trim()}
-            className="rounded-md bg-crimson-600 px-5 py-2 text-sm font-semibold hover:bg-crimson-500 disabled:opacity-50"
+            onClick={handleRegenerate}
+            disabled={nameSaving}
+            className="flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-2.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50"
           >
-            {nameSaving ? 'Saving…' : 'Save'}
+            <RefreshCw size={13} className={nameSaving ? 'animate-spin' : ''} />
+            {nameSaving ? 'Generating…' : 'Regenerate'}
           </button>
-          {nameStatus && <span className="text-xs text-white/50">{nameStatus}</span>}
         </div>
-      </form>
+        <p className="mt-2 text-xs text-white/40">
+          Usernames are randomly generated and unique — regenerating gives you a new one and releases this one.
+        </p>
+        {nameStatus && <p className="mt-2 text-xs text-white/50">{nameStatus}</p>}
+        <div className="mt-3 text-xs text-white/40">{user.email}</div>
+      </div>
 
       <form onSubmit={savePassword} className="mt-6 rounded-xl border border-white/10 bg-base-850 p-6">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-white/50">Change Password</h2>

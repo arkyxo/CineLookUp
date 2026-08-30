@@ -74,7 +74,7 @@ export default function Profile() {
           <h2 className="mb-3 text-lg font-semibold">Movies You've Rated</h2>
           <div className="grid grid-cols-3 gap-4 sm:grid-cols-5 md:grid-cols-6">
             {stats.ratings.map((r) => (
-              <div key={r.id} className="cursor-pointer" onClick={() => navigate(`/movie/${r.id}`)}>
+              <div key={r.id} className="cursor-pointer" onClick={() => navigate(`/${r.mediaType || 'movie'}/${r.id}`)}>
                 <div className="aspect-[2/3] overflow-hidden rounded-lg bg-base-800">
                   {r.posterPath && <img src={imageUrl(r.posterPath, 'w185')} alt={r.title} className="h-full w-full object-cover" />}
                 </div>
