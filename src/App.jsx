@@ -13,6 +13,7 @@ import Person from './pages/Person';
 import Search from './pages/Search';
 import Watchlist from './pages/Watchlist';
 import PrivateList from './pages/PrivateList';
+import Reviews from './pages/Reviews';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
@@ -46,6 +47,14 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Watchlist />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reviews"
+          element={
+            <ProtectedRoute>
+              <Reviews />
             </ProtectedRoute>
           }
         />
