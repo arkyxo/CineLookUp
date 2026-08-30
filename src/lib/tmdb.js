@@ -88,10 +88,10 @@ export const getNowPlaying = (page = 1) =>
   tmdbFetch('/movie/now_playing', { page });
 
 export const getMovieDetails = (id) =>
-  tmdbFetch(`/movie/${id}`, { append_to_response: 'credits,videos,similar' });
+  tmdbFetch(`/movie/${id}`, { append_to_response: 'credits,videos,similar,watch/providers' });
 
 export const getTvDetails = (id) =>
-  tmdbFetch(`/tv/${id}`, { append_to_response: 'credits,videos,similar' });
+  tmdbFetch(`/tv/${id}`, { append_to_response: 'credits,videos,similar,watch/providers' });
 
 export const searchMulti = (query, page = 1) =>
   tmdbFetch('/search/multi', { query, page });

@@ -15,14 +15,12 @@ import {
   getFirestore,
   doc,
   setDoc,
+  addDoc,
   deleteDoc,
   getDoc,
   getDocs,
   collection,
   collectionGroup,
-  query,
-  orderBy,
-  limit,
   runTransaction,
 } from 'firebase/firestore';
 
@@ -156,12 +154,45 @@ export const getReview = async (uid, movieId) => {
   return snap.exists() ? snap.data() : null;
 };
 
+// Public feed across every user's reviews, newest first. Sorted client-side
+// rather than with a Firestore orderBy, since collection-group queries with
+// orderBy require a dedicated index — this avoids that setup step entirely.
+// Older rating entries saved before this feature existed won't have review
+// text, so they're filtered out rather than cluttering the feed.
 export const getAllReviews = async (max = 100) => {
-  const q = query(collectionGroup(db, 'ratings'), orderBy('ratedAt', 'desc'), limit(max));
-  const snap = await getDocs(q);
-  return snap.docs.map((d) => d.data()).filter((r) => r.review && r.review.trim().length > 0);
+  const snap = await getDocs(collectionGroup(db, 'ratings'));
+  return snap.docs
+    .map((d) => ({ ...d.data(), reviewerUid: d.ref.parent.parent.id }))
+    .filter((r) => r.review && r.review.trim().length > 0)
+    .sort((a, b) => (b.ratedAt || 0) - (a.ratedAt || 0))
+    .slice(0, max);
 };
 
+// ---- Side comments on a review: users/{reviewerUid}/ratings/{movieId}/comments/{commentId} ----
+// Any signed-in user can read and post; only the comment's own author can delete it.
+
+const commentsCollection = (reviewerUid, movieId) =>
+  collection(db, 'users', reviewerUid, 'ratings', String(movieId), 'comments');
+
+export const addComment = (reviewerUid, movieId, text, author) =>
+  addDoc(commentsCollection(reviewerUid, movieId), {
+    text,
+    uid: author.uid,
+    username: author.username || 'Anonymous',
+    createdAt: Date.now(),
+  });
+
+export const getComments = async (reviewerUid, movieId) => {
+  const snap = await getDocs(commentsCollection(reviewerUid, movieId));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => a.createdAt - b.createdAt);
+};
+
+// ---- Account deletion ----
+// Permanently deletes everything: all three Firestore subcollections
+// (watchlist, privateList, ratings), the claimed username, and the Firebase
+// Auth account itself. Like changePassword, this needs a recent login.
 export const deleteAccount = async (password) => {
   const user = auth.currentUser;
   const credential = EmailAuthProvider.credential(user.email, password);
