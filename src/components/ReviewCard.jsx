@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Star, MessageCircle } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Star, MessageCircle, Heart } from 'lucide-react';
 import { imageUrl } from '../lib/tmdb';
 import { useAuth } from '../context/AuthContext';
-import { getComments, addComment } from '../lib/firebase';
+import { getComments, addComment, getLikes, toggleLike } from '../lib/firebase';
 import { useToast } from '../context/ToastContext';
 
 const PREVIEW_COUNT = 2;
@@ -16,6 +16,8 @@ export default function ReviewCard({ review }) {
   const [showAll, setShowAll] = useState(false);
   const [draft, setDraft] = useState('');
   const [posting, setPosting] = useState(false);
+  const [likes, setLikes] = useState(null);
+  const [likeBusy, setLikeBusy] = useState(false);
 
   const goToTitle = () => navigate(`/${review.mediaType || 'movie'}/${review.id}`);
 
@@ -29,20 +31,52 @@ export default function ReviewCard({ review }) {
         console.error('Failed to load comments:', err);
         if (!cancelled) setComments([]);
       });
+    getLikes(review.reviewerUid, review.id)
+      .then((list) => {
+        if (!cancelled) setLikes(list);
+      })
+      .catch((err) => {
+        console.error('Failed to load likes:', err);
+        if (!cancelled) setLikes([]);
+      });
     return () => {
       cancelled = true;
     };
   }, [review.reviewerUid, review.id]);
+
+  const liked = !!(user && likes?.includes(user.uid));
+
+  const handleToggleLike = async () => {
+    if (!user || likeBusy) return;
+    setLikeBusy(true);
+    try {
+      const nowLiked = await toggleLike(review.reviewerUid, review.id, user.uid, user.displayName, {
+        title: review.title,
+        mediaType: review.mediaType,
+      });
+      setLikes((prev) =>
+        nowLiked ? [...(prev || []), user.uid] : (prev || []).filter((id) => id !== user.uid)
+      );
+    } catch (err) {
+      console.error('Failed to toggle like:', err);
+      showToast("Couldn't update like");
+    } finally {
+      setLikeBusy(false);
+    }
+  };
 
   const postComment = async () => {
     if (!draft.trim() || !user) return;
     setPosting(true);
     const text = draft.trim();
     try {
-      await addComment(review.reviewerUid, review.id, text, {
-        uid: user.uid,
-        username: user.displayName,
-      });
+      await addComment(
+        review.reviewerUid,
+        review.id,
+        text,
+        { uid: user.uid, username: user.displayName },
+        { title: review.title, mediaType: review.mediaType }
+      );
       setComments((prev) => [
         ...(prev || []),
         { text, uid: user.uid, username: user.displayName, createdAt: Date.now() },
@@ -80,7 +114,24 @@ export default function ReviewCard({ review }) {
             {review.rating}/5
           </span>
         </div>
-        <p className="mt-0.5 text-xs font-medium text-white/40">@{review.username || 'Anonymous'}</p>
+        <div className="mt-0.5 flex items-center justify-between">
+          <Link
+            to={`/u/${review.username}`}
+            className="text-xs font-medium text-white/40 hover:text-crimson-400 hover:underline"
+          >
+            @{review.username || 'Anonymous'}
+          </Link>
+          <button
+            onClick={handleToggleLike}
+            disabled={!user || likeBusy}
+            className={`flex items-center gap-1 text-xs font-medium transition ${
+              liked ? 'text-crimson-400' : 'text-white/40 hover:text-white'
+            } disabled:cursor-default`}
+          >
+            <Heart size={13} className={liked ? 'fill-crimson-400' : ''} />
+            {likes ? likes.length : ''}
+          </button>
+        </div>
         <p className="mt-2 text-sm leading-relaxed text-white/80">{review.review}</p>
 
         <div className="mt-3 border-t border-white/10 pt-3">

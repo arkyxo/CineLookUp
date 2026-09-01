@@ -17,6 +17,7 @@ import Reviews from './pages/Reviews';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Profile from './pages/Profile';
+import PublicProfile from './pages/PublicProfile';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
@@ -40,6 +41,14 @@ export default function App() {
         <Route path="/search" element={<Search />} />
         <Route path="/:mediaType/:id" element={<MovieDetails />} />
         <Route path="/person/:id" element={<Person />} />
+        <Route
+          path="/u/:username"
+          element={
+            <ProtectedRoute>
+              <PublicProfile />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route

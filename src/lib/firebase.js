@@ -16,6 +16,7 @@ import {
   doc,
   setDoc,
   addDoc,
+  updateDoc,
   deleteDoc,
   getDoc,
   getDocs,
@@ -174,19 +175,99 @@ export const getAllReviews = async (max = 100) => {
 const commentsCollection = (reviewerUid, movieId) =>
   collection(db, 'users', reviewerUid, 'ratings', String(movieId), 'comments');
 
-export const addComment = (reviewerUid, movieId, text, author) =>
-  addDoc(commentsCollection(reviewerUid, movieId), {
+export const addComment = async (reviewerUid, movieId, text, author, movieInfo = {}) => {
+  await addDoc(commentsCollection(reviewerUid, movieId), {
     text,
     uid: author.uid,
     username: author.username || 'Anonymous',
     createdAt: Date.now(),
   });
+  addNotification(reviewerUid, {
+    type: 'comment',
+    fromUid: author.uid,
+    fromUsername: author.username || 'Anonymous',
+    movieId,
+    movieTitle: movieInfo.title || '',
+    mediaType: movieInfo.mediaType || 'movie',
+    text,
+  }).catch((err) => console.error('Failed to create notification:', err));
+};
 
 export const getComments = async (reviewerUid, movieId) => {
   const snap = await getDocs(commentsCollection(reviewerUid, movieId));
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }))
     .sort((a, b) => a.createdAt - b.createdAt);
+};
+
+// ---- Likes on a review: users/{reviewerUid}/ratings/{movieId}/likes/{likerUid} ----
+// Doc ID is the liker's own uid, so "have I liked this" is a single getDoc,
+// and a user can only ever create/delete their own like (enforced in rules).
+
+const likeDoc = (reviewerUid, movieId, likerUid) =>
+  doc(db, 'users', reviewerUid, 'ratings', String(movieId), 'likes', likerUid);
+
+export const getLikes = async (reviewerUid, movieId) => {
+  const snap = await getDocs(collection(db, 'users', reviewerUid, 'ratings', String(movieId), 'likes'));
+  return snap.docs.map((d) => d.id); // array of uids who liked it
+};
+
+// Toggles the current user's like on a review, returns the new liked state.
+export const toggleLike = async (reviewerUid, movieId, likerUid, likerUsername, movieInfo = {}) => {
+  const ref = likeDoc(reviewerUid, movieId, likerUid);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    await deleteDoc(ref);
+    return false;
+  }
+  await setDoc(ref, { likedAt: Date.now() });
+  addNotification(reviewerUid, {
+    type: 'like',
+    fromUid: likerUid,
+    fromUsername: likerUsername || 'Anonymous',
+    movieId,
+    movieTitle: movieInfo.title || '',
+    mediaType: movieInfo.mediaType || 'movie',
+  }).catch((err) => console.error('Failed to create notification:', err));
+  return true;
+};
+
+// ---- Public profiles: resolve a username to its owning uid ----
+
+export const getUidByUsername = async (username) => {
+  const snap = await getDoc(doc(db, 'usernames', username));
+  return snap.exists() ? snap.data().uid : null;
+};
+
+// ---- Notifications: users/{uid}/notifications/{notifId} ----
+// Private — only the owner can read/mark-read/delete their own. Any signed-in
+// user can create a notification IN someone else's subcollection (that's how
+// "you got a comment" works), but rules require the notification to honestly
+// claim the real sender's uid, so it can't be spoofed.
+
+const notificationsCollection = (uid) => collection(db, 'users', uid, 'notifications');
+
+const addNotification = (toUid, notif) => {
+  if (toUid === notif.fromUid) return Promise.resolve(); // never notify yourself
+  return addDoc(notificationsCollection(toUid), { ...notif, read: false, createdAt: Date.now() });
+};
+
+export const getNotifications = async (uid, max = 50) => {
+  const snap = await getDocs(notificationsCollection(uid));
+  return snap.docs
+    .map((d) => ({ id: d.id, ...d.data() }))
+    .sort((a, b) => b.createdAt - a.createdAt)
+    .slice(0, max);
+};
+
+export const markNotificationRead = (uid, notifId) =>
+  updateDoc(doc(db, 'users', uid, 'notifications', notifId), { read: true });
+
+export const markAllNotificationsRead = async (uid) => {
+  const snap = await getDocs(notificationsCollection(uid));
+  await Promise.all(
+    snap.docs.filter((d) => !d.data().read).map((d) => updateDoc(d.ref, { read: true }))
+  );
 };
 
 // ---- Account deletion ----

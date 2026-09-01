@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Film, Bell } from 'lucide-react';
+import { Menu, X, Film } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { logOut } from '../lib/firebase';
 import SearchBox from './SearchBox';
+import NotificationBell from './NotificationBell';
 
 const LINKS = [
   { to: '/', label: 'Home' },
@@ -38,9 +39,9 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <SearchBox className="hidden w-56 sm:block" />
 
-          <button aria-label="Notifications" className="hidden text-white/70 hover:text-white sm:block">
-            <Bell size={18} />
-          </button>
+          <div className="hidden sm:block">
+            <NotificationBell />
+          </div>
 
           {user ? (
             <Link
