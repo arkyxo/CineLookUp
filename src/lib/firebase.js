@@ -10,6 +10,7 @@ import {
   reauthenticateWithCredential,
   EmailAuthProvider,
   deleteUser,
+  sendPasswordResetEmail,
 } from 'firebase/auth';
 import {
   getFirestore,
@@ -95,6 +96,8 @@ export const logIn = (email, password) => signInWithEmailAndPassword(auth, email
 
 export const logOut = () => signOut(auth);
 
+export const resetPassword = (email) => sendPasswordResetEmail(auth, email);
+
 export const watchAuthState = (cb) => onAuthStateChanged(auth, cb);
 
 // Firebase requires a recent login before letting you change the password,
@@ -144,6 +147,8 @@ export const setReview = (uid, item, rating, reviewText, username) =>
     mediaType: item.media_type || 'movie',
     title: item.title || item.name,
     posterPath: item.poster_path || null,
+    releaseDate: item.release_date || item.first_air_date || null,
+    genreIds: item.genre_ids || (item.genres || []).map((g) => g.id),
     rating,
     review: reviewText || '',
     username: username || 'Anonymous',
@@ -270,6 +275,68 @@ export const markAllNotificationsRead = async (uid) => {
   );
 };
 
+// ---- Custom curated lists: users/{uid}/customLists/{listId} ----
+// Each list has its own items subcollection:
+// users/{uid}/customLists/{listId}/items/{movieId}
+// Private to the owner only — same access pattern as Watchlist/Private List.
+// (No public/shareable lists yet — that'd need cross-user read rules on the
+// items subcollection, a bigger change saved for later.)
+
+export const createCustomList = async (uid, name, description = '') => {
+  const ref = await addDoc(collection(db, 'users', uid, 'customLists'), {
+    name,
+    description,
+    createdAt: Date.now(),
+  });
+  return ref.id;
+};
+
+export const getCustomLists = async (uid) => {
+  const snap = await getDocs(collection(db, 'users', uid, 'customLists'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() })).sort((a, b) => b.createdAt - a.createdAt);
+};
+
+export const getCustomList = async (uid, listId) => {
+  const snap = await getDoc(doc(db, 'users', uid, 'customLists', listId));
+  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
+};
+
+export const renameCustomList = (uid, listId, name, description) =>
+  updateDoc(doc(db, 'users', uid, 'customLists', listId), { name, description });
+
+export const deleteCustomList = async (uid, listId) => {
+  const itemsSnap = await getDocs(collection(db, 'users', uid, 'customLists', listId, 'items'));
+  await Promise.all(itemsSnap.docs.map((d) => deleteDoc(d.ref)));
+  await deleteDoc(doc(db, 'users', uid, 'customLists', listId));
+};
+
+const customListItemDoc = (uid, listId, movieId) =>
+  doc(db, 'users', uid, 'customLists', listId, 'items', String(movieId));
+
+export const addToCustomList = (uid, listId, item) =>
+  setDoc(customListItemDoc(uid, listId, item.id), {
+    id: item.id,
+    mediaType: item.media_type || 'movie',
+    title: item.title || item.name,
+    posterPath: item.poster_path || null,
+    voteAverage: item.vote_average ?? null,
+    releaseDate: item.release_date || item.first_air_date || null,
+    genreIds: item.genre_ids || (item.genres || []).map((g) => g.id),
+    addedAt: Date.now(),
+  });
+
+export const removeFromCustomList = (uid, listId, movieId) => deleteDoc(customListItemDoc(uid, listId, movieId));
+
+export const getCustomListItems = async (uid, listId) => {
+  const snap = await getDocs(collection(db, 'users', uid, 'customLists', listId, 'items'));
+  return snap.docs.map((d) => d.data());
+};
+
+export const isInCustomList = async (uid, listId, movieId) => {
+  const snap = await getDoc(customListItemDoc(uid, listId, movieId));
+  return snap.exists();
+};
+
 // ---- Account deletion ----
 // Permanently deletes everything: all three Firestore subcollections
 // (watchlist, privateList, ratings), the claimed username, and the Firebase
@@ -283,6 +350,13 @@ export const deleteAccount = async (password) => {
   for (const name of listNames) {
     const snap = await getDocs(collection(db, 'users', user.uid, name));
     await Promise.all(snap.docs.map((d) => deleteDoc(d.ref)));
+  }
+
+  const customListsSnap = await getDocs(collection(db, 'users', user.uid, 'customLists'));
+  for (const listDocSnap of customListsSnap.docs) {
+    const itemsSnap = await getDocs(collection(listDocSnap.ref, 'items'));
+    await Promise.all(itemsSnap.docs.map((d) => deleteDoc(d.ref)));
+    await deleteDoc(listDocSnap.ref);
   }
 
   if (user.displayName) {

@@ -12,6 +12,7 @@ const LINKS = [
   { to: '/genres', label: 'Genres' },
   { to: '/reviews', label: 'Review Hall' },
   { to: '/private-list', label: 'Private List' },
+  { to: '/lists', label: 'Lists' },
 ];
 
 export default function Navbar() {

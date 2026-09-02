@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Play, Plus, Check, Lock, LockOpen } from 'lucide-react';
+import { Play, Plus, Check, Lock, LockOpen, ListPlus } from 'lucide-react';
 import {
   getMovieDetails,
   getTvDetails,
@@ -13,6 +13,7 @@ import { addToList, removeFromList, isInList, getReview } from '../lib/firebase'
 import StarRating from '../components/StarRating';
 import TrailerModal from '../components/TrailerModal';
 import MovieQuickView from '../components/MovieQuickView';
+import AddToListModal from '../components/AddToListModal';
 import MovieRow from '../components/MovieRow';
 import LoadingSpinner from '../components/LoadingSpinner';
 import ErrorState from '../components/ErrorState';
@@ -28,6 +29,7 @@ export default function MovieDetails() {
   const [data, setData] = useState(null);
   const [trailerOpen, setTrailerOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [listModalOpen, setListModalOpen] = useState(false);
   const [inWatchlist, setInWatchlist] = useState(false);
   const [inPrivateList, setInPrivateList] = useState(false);
   const [myReview, setMyReview] = useState(null);
@@ -155,6 +157,12 @@ export default function MovieDetails() {
               {inPrivateList ? <Lock size={16} /> : <LockOpen size={16} />}
               {inPrivateList ? 'In Private List' : 'Add to Private List'}
             </button>
+            <button
+              onClick={() => (requireAuth() ? setListModalOpen(true) : null)}
+              className="flex items-center gap-2 rounded-md bg-white/10 px-5 py-2.5 text-sm font-semibold backdrop-blur hover:bg-white/20"
+            >
+              <ListPlus size={16} /> Add to List
+            </button>
           </div>
 
           <div className="mt-6">
@@ -275,6 +283,9 @@ export default function MovieDetails() {
           onPlayTrailer={() => setTrailerOpen(true)}
           onReviewSaved={setMyReview}
         />
+      )}
+      {listModalOpen && (
+        <AddToListModal item={{ ...data, media_type: mediaType }} onClose={() => setListModalOpen(false)} />
       )}
     </div>
   );

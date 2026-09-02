@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, TrendingUp } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { getList, logOut } from '../lib/firebase';
 import { imageUrl } from '../lib/tmdb';
@@ -47,6 +47,12 @@ export default function Profile() {
           </div>
         </div>
         <div className="flex gap-3">
+          <Link
+            to="/stats"
+            className="flex items-center gap-2 rounded-md bg-white/10 px-4 py-2 text-sm font-medium hover:bg-white/20"
+          >
+            <TrendingUp size={15} /> Stats
+          </Link>
           <Link
             to="/settings"
             className="flex items-center gap-2 rounded-md bg-white/10 px-4 py-2 text-sm font-medium hover:bg-white/20"

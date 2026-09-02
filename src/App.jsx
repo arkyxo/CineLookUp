@@ -16,9 +16,13 @@ import PrivateList from './pages/PrivateList';
 import Reviews from './pages/Reviews';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
 import Profile from './pages/Profile';
 import PublicProfile from './pages/PublicProfile';
 import Settings from './pages/Settings';
+import Stats from './pages/Stats';
+import Lists from './pages/Lists';
+import ListDetail from './pages/ListDetail';
 import NotFound from './pages/NotFound';
 
 // Logged-out visitors get the marketing landing page at "/";
@@ -51,6 +55,7 @@ export default function App() {
         />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route
           path="/watchlist"
           element={
@@ -88,6 +93,30 @@ export default function App() {
           element={
             <ProtectedRoute>
               <Settings />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/stats"
+          element={
+            <ProtectedRoute>
+              <Stats />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lists"
+          element={
+            <ProtectedRoute>
+              <Lists />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/lists/:listId"
+          element={
+            <ProtectedRoute>
+              <ListDetail />
             </ProtectedRoute>
           }
         />
