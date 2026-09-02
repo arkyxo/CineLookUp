@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Heart, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { getNotifications, markAllNotificationsRead, markNotificationRead } from '../lib/firebase';
+import { watchNotifications, markAllNotificationsRead, markNotificationRead } from '../lib/firebase';
 
 export default function NotificationBell() {
   const { user } = useAuth();
@@ -13,12 +13,8 @@ export default function NotificationBell() {
 
   useEffect(() => {
     if (!user) return;
-    getNotifications(user.uid)
-      .then(setNotifs)
-      .catch((err) => {
-        console.error('Failed to load notifications:', err);
-        setNotifs([]);
-      });
+    const unsubscribe = watchNotifications(user.uid, setNotifs);
+    return unsubscribe;
   }, [user]);
 
   useEffect(() => {
@@ -33,16 +29,7 @@ export default function NotificationBell() {
 
   const unreadCount = notifs?.filter((n) => !n.read).length || 0;
 
-  const handleToggleOpen = async () => {
-    const next = !open;
-    setOpen(next);
-    if (next) {
-      // Refresh every time it's opened — this app doesn't use realtime
-      // listeners, so this is how you see anything that arrived since load.
-      const list = await getNotifications(user.uid).catch(() => notifs || []);
-      setNotifs(list);
-    }
-  };
+  const handleToggleOpen = () => setOpen((o) => !o);
 
   const handleMarkAll = async () => {
     await markAllNotificationsRead(user.uid);
@@ -104,9 +91,13 @@ export default function NotificationBell() {
                 )}
                 <span className="text-xs leading-relaxed text-white/80">
                   <span className="font-semibold">@{n.fromUsername}</span>{' '}
-                  {n.type === 'like' ? 'liked' : 'commented on'} your review of{' '}
+                  {n.type === 'like'
+                    ? 'liked'
+                    : n.type === 'reply'
+                    ? 'replied to your comment on'
+                    : 'commented on your review of'}{' '}
                   <span className="font-semibold">{n.movieTitle}</span>
-                  {n.type === 'comment' && n.text && (
+                  {(n.type === 'comment' || n.type === 'reply') && n.text && (
                     <span className="mt-1 block text-white/50">"{n.text}"</span>
                   )}
                 </span>
