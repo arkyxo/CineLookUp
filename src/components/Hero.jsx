@@ -26,7 +26,7 @@ export default function Hero({ item, inWatchlist, onToggleWatchlist, onPlayTrail
         </span>
         <h1 className="font-display text-5xl leading-none tracking-wide sm:text-7xl">{title}</h1>
 
-        <div className="flex items-center gap-3 text-sm text-white/80">
+        <div className="flex items-center gap-3 text-sm text-ink/80">
           <span className="flex items-center gap-1 font-medium text-crimson-400">
             <Star size={14} className="fill-crimson-400" />
             {item.vote_average ? item.vote_average.toFixed(1) : '—'}
@@ -35,25 +35,25 @@ export default function Hero({ item, inWatchlist, onToggleWatchlist, onPlayTrail
           {item.genreNames?.length > 0 && <span>{item.genreNames.join(', ')}</span>}
         </div>
 
-        <p className="line-clamp-3 text-sm text-white/70 sm:text-base">{item.overview}</p>
+        <p className="line-clamp-3 text-sm text-ink/70 sm:text-base">{item.overview}</p>
 
         <div className="mt-2 flex flex-wrap items-center gap-3">
           <button
             onClick={() => onPlayTrailer(item)}
             className="flex items-center gap-2 rounded-md bg-crimson-600 px-5 py-2.5 text-sm font-semibold transition hover:bg-crimson-500"
           >
-            <Play size={16} className="fill-white" /> Watch Trailer
+            <Play size={16} className="fill-ink" /> Watch Trailer
           </button>
           <button
             onClick={() => onToggleWatchlist(item)}
-            className="flex items-center gap-2 rounded-md bg-white/10 px-5 py-2.5 text-sm font-semibold backdrop-blur transition hover:bg-white/20"
+            className="flex items-center gap-2 rounded-md bg-ink/10 px-5 py-2.5 text-sm font-semibold backdrop-blur transition hover:bg-ink/20"
           >
             {inWatchlist ? <Check size={16} /> : <Plus size={16} />}
             {inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
           </button>
           <button
             onClick={() => navigate(`/${mediaType}/${item.id}`)}
-            className="flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-white/80 transition hover:text-white"
+            className="flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold text-ink/80 transition hover:text-ink"
           >
             <Info size={16} /> More Info
           </button>

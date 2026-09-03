@@ -76,53 +76,53 @@ export default function Settings() {
     <div className="mx-auto max-w-xl px-4 pb-16 pt-8 sm:px-8">
       <button
         onClick={() => navigate('/profile')}
-        className="mb-6 flex items-center gap-1.5 text-sm text-white/50 hover:text-white"
+        className="mb-6 flex items-center gap-1.5 text-sm text-ink/50 hover:text-ink"
       >
         <ArrowLeft size={15} /> Back to Profile
       </button>
 
       <h1 className="text-2xl font-semibold">Settings</h1>
 
-      <div className="mt-8 rounded-xl border border-white/10 bg-base-850 p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-white/50">Profile</h2>
-        <p className="mb-1 mt-4 text-xs font-medium text-white/60">Username</p>
+      <div className="mt-8 rounded-xl border border-ink/10 bg-card p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink/50">Profile</h2>
+        <p className="mb-1 mt-4 text-xs font-medium text-ink/60">Username</p>
         <div className="flex items-center gap-3">
-          <span className="rounded-md border border-white/10 bg-white/5 px-3 py-2.5 text-sm font-semibold tracking-wide">
+          <span className="rounded-md border border-ink/10 bg-ink/5 px-3 py-2.5 text-sm font-semibold tracking-wide">
             {username}
           </span>
           <button
             onClick={handleRegenerate}
             disabled={nameSaving}
-            className="flex items-center gap-1.5 rounded-md bg-white/10 px-3 py-2.5 text-xs font-semibold hover:bg-white/20 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md bg-ink/10 px-3 py-2.5 text-xs font-semibold hover:bg-ink/20 disabled:opacity-50"
           >
             <RefreshCw size={13} className={nameSaving ? 'animate-spin' : ''} />
             {nameSaving ? 'Generating…' : 'Regenerate'}
           </button>
         </div>
-        <p className="mt-2 text-xs text-white/40">
+        <p className="mt-2 text-xs text-ink/40">
           Usernames are randomly generated and unique — regenerating gives you a new one and releases this one.
         </p>
-        {nameStatus && <p className="mt-2 text-xs text-white/50">{nameStatus}</p>}
-        <div className="mt-3 text-xs text-white/40">{user.email}</div>
+        {nameStatus && <p className="mt-2 text-xs text-ink/50">{nameStatus}</p>}
+        <div className="mt-3 text-xs text-ink/40">{user.email}</div>
       </div>
 
-      <form onSubmit={savePassword} className="mt-6 rounded-xl border border-white/10 bg-base-850 p-6">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-white/50">Change Password</h2>
+      <form onSubmit={savePassword} className="mt-6 rounded-xl border border-ink/10 bg-card p-6">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink/50">Change Password</h2>
 
-        <label className="mb-1 mt-4 block text-xs font-medium text-white/60">Current Password</label>
+        <label className="mb-1 mt-4 block text-xs font-medium text-ink/60">Current Password</label>
         <input
           type="password"
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
-          className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
+          className="w-full rounded-md border border-ink/10 bg-ink/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
         />
 
-        <label className="mb-1 mt-4 block text-xs font-medium text-white/60">New Password</label>
+        <label className="mb-1 mt-4 block text-xs font-medium text-ink/60">New Password</label>
         <input
           type="password"
           value={newPassword}
           onChange={(e) => setNewPassword(e.target.value)}
-          className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
+          className="w-full rounded-md border border-ink/10 bg-ink/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
         />
 
         {pwError && <p className="mt-3 text-sm text-crimson-400">{pwError}</p>}
@@ -135,7 +135,7 @@ export default function Settings() {
           >
             {pwSaving ? 'Updating…' : 'Update Password'}
           </button>
-          {pwStatus && <span className="text-xs text-white/50">{pwStatus}</span>}
+          {pwStatus && <span className="text-xs text-ink/50">{pwStatus}</span>}
         </div>
       </form>
 
@@ -147,19 +147,19 @@ export default function Settings() {
 
         {!deleteOpen ? (
           <>
-            <p className="mt-3 text-sm text-white/60">
+            <p className="mt-3 text-sm text-ink/60">
               Permanently delete your account, watchlist, private collection, and ratings. This cannot be undone.
             </p>
             <button
               onClick={() => setDeleteOpen(true)}
-              className="mt-4 rounded-md border border-crimson-600 px-5 py-2 text-sm font-semibold text-crimson-400 hover:bg-crimson-600 hover:text-white"
+              className="mt-4 rounded-md border border-crimson-600 px-5 py-2 text-sm font-semibold text-crimson-400 hover:bg-crimson-600 hover:text-ink"
             >
               Delete Account
             </button>
           </>
         ) : (
           <form onSubmit={handleDelete} className="mt-3">
-            <p className="text-sm text-white/70">
+            <p className="text-sm text-ink/70">
               This will permanently delete your account and all of your data. Enter your password to confirm.
             </p>
             <input
@@ -168,7 +168,7 @@ export default function Settings() {
               placeholder="Password"
               value={deletePassword}
               onChange={(e) => setDeletePassword(e.target.value)}
-              className="mt-3 w-full rounded-md border border-white/10 bg-white/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
+              className="mt-3 w-full rounded-md border border-ink/10 bg-ink/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
             />
             {deleteError && <p className="mt-2 text-sm text-crimson-400">{deleteError}</p>}
             <div className="mt-4 flex items-center gap-3">
@@ -186,7 +186,7 @@ export default function Settings() {
                   setDeletePassword('');
                   setDeleteError('');
                 }}
-                className="text-sm text-white/50 hover:text-white"
+                className="text-sm text-ink/50 hover:text-ink"
               >
                 Cancel
               </button>

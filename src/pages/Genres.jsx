@@ -51,7 +51,7 @@ export default function Genres() {
           <Link
             key={g.id}
             to={`/genres/${g.id}`}
-            className="rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm font-medium transition hover:border-crimson-500 hover:text-crimson-400"
+            className="rounded-full border border-ink/10 bg-ink/5 px-4 py-2 text-sm font-medium transition hover:border-crimson-500 hover:text-crimson-400"
           >
             {g.name}
           </Link>
@@ -105,17 +105,17 @@ function GenreDetail({ genreId, genres }) {
             <ChevronRight size={12} />
           </div>
           <h1 className="font-display text-4xl tracking-wide sm:text-5xl">{displayName}</h1>
-          {BLURBS[rawGenreName] && <p className="mt-2 text-sm text-white/50">{BLURBS[rawGenreName]}</p>}
+          {BLURBS[rawGenreName] && <p className="mt-2 text-sm text-ink/50">{BLURBS[rawGenreName]}</p>}
         </div>
 
         <div className="flex flex-col items-end gap-2">
-          <div className="flex overflow-hidden rounded-lg border border-white/10 bg-white/5">
+          <div className="flex overflow-hidden rounded-lg border border-ink/10 bg-ink/5">
             {SORT_TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setSortKey(tab.key)}
                 className={`px-4 py-2 text-sm font-medium transition ${
-                  sortKey === tab.key ? 'bg-crimson-600 text-white' : 'text-white/70 hover:bg-white/10'
+                  sortKey === tab.key ? 'bg-crimson-600 text-ink' : 'text-ink/70 hover:bg-ink/10'
                 }`}
               >
                 {tab.label}
@@ -124,7 +124,7 @@ function GenreDetail({ genreId, genres }) {
           </div>
           <button
             onClick={() => setFiltersOpen((o) => !o)}
-            className="flex items-center gap-1.5 rounded-md border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white/70 hover:bg-white/10"
+            className="flex items-center gap-1.5 rounded-md border border-ink/10 bg-ink/5 px-3 py-1.5 text-xs font-medium text-ink/70 hover:bg-ink/10"
           >
             <SlidersHorizontal size={13} />
             Filters
@@ -134,7 +134,7 @@ function GenreDetail({ genreId, genres }) {
       </div>
 
       {filtersOpen && (
-        <div className="mt-4 flex flex-wrap gap-2 rounded-lg border border-white/10 bg-base-850 p-3">
+        <div className="mt-4 flex flex-wrap gap-2 rounded-lg border border-ink/10 bg-card p-3">
           {genres.map((g) => (
             <Link
               key={g.id}
@@ -142,8 +142,8 @@ function GenreDetail({ genreId, genres }) {
               onClick={() => setFiltersOpen(false)}
               className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
                 String(g.id) === genreId
-                  ? 'bg-crimson-600 text-white'
-                  : 'bg-white/5 text-white/70 hover:bg-white/10'
+                  ? 'bg-crimson-600 text-ink'
+                  : 'bg-ink/5 text-ink/70 hover:bg-ink/10'
               }`}
             >
               {g.name}
@@ -170,7 +170,7 @@ function GenreDetail({ genreId, genres }) {
                 <button
                   onClick={loadMore}
                   disabled={loadingMore}
-                  className="flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-6 py-2.5 text-sm font-medium hover:bg-white/10 disabled:opacity-50"
+                  className="flex items-center gap-1.5 rounded-full border border-ink/15 bg-ink/5 px-6 py-2.5 text-sm font-medium hover:bg-ink/10 disabled:opacity-50"
                 >
                   {loadingMore ? 'Loading…' : 'Load More'}
                   {!loadingMore && <ChevronDown size={14} />}

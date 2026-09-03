@@ -36,7 +36,7 @@ export default function Movies() {
               key={s.key}
               onClick={() => setSortKey(s.key)}
               className={`rounded-full px-4 py-1.5 text-sm font-medium transition ${
-                sortKey === s.key ? 'bg-crimson-600 text-white' : 'bg-white/5 text-white/70 hover:bg-white/10'
+                sortKey === s.key ? 'bg-crimson-600 text-ink' : 'bg-ink/5 text-ink/70 hover:bg-ink/10'
               }`}
             >
               {s.label}

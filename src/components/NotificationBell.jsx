@@ -50,7 +50,7 @@ export default function NotificationBell() {
       <button
         onClick={handleToggleOpen}
         aria-label="Notifications"
-        className="relative text-white/70 hover:text-white"
+        className="relative text-ink/70 hover:text-ink"
       >
         <Bell size={18} />
         {unreadCount > 0 && (
@@ -61,8 +61,8 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 max-h-96 w-80 overflow-y-auto rounded-lg border border-white/10 bg-base-850 shadow-2xl">
-          <div className="flex items-center justify-between border-b border-white/10 px-4 py-2.5">
+        <div className="absolute right-0 top-full z-50 mt-2 max-h-96 w-80 overflow-y-auto rounded-lg border border-ink/10 bg-card shadow-2xl">
+          <div className="flex items-center justify-between border-b border-ink/10 px-4 py-2.5">
             <p className="text-sm font-semibold">Notifications</p>
             {unreadCount > 0 && (
               <button onClick={handleMarkAll} className="text-xs text-crimson-400 hover:underline">
@@ -72,15 +72,15 @@ export default function NotificationBell() {
           </div>
 
           {notifs === null ? (
-            <p className="px-4 py-6 text-center text-xs text-white/40">Loading…</p>
+            <p className="px-4 py-6 text-center text-xs text-ink/40">Loading…</p>
           ) : notifs.length === 0 ? (
-            <p className="px-4 py-6 text-center text-xs text-white/40">No notifications yet.</p>
+            <p className="px-4 py-6 text-center text-xs text-ink/40">No notifications yet.</p>
           ) : (
             notifs.map((n) => (
               <button
                 key={n.id}
                 onClick={() => handleClickNotif(n)}
-                className={`flex w-full items-start gap-2.5 border-b border-white/5 px-4 py-3 text-left last:border-0 hover:bg-white/5 ${
+                className={`flex w-full items-start gap-2.5 border-b border-ink/5 px-4 py-3 text-left last:border-0 hover:bg-ink/5 ${
                   n.read ? 'opacity-60' : ''
                 }`}
               >
@@ -89,7 +89,7 @@ export default function NotificationBell() {
                 ) : (
                   <MessageCircle size={14} className="mt-0.5 flex-shrink-0 text-crimson-400" />
                 )}
-                <span className="text-xs leading-relaxed text-white/80">
+                <span className="text-xs leading-relaxed text-ink/80">
                   <span className="font-semibold">@{n.fromUsername}</span>{' '}
                   {n.type === 'like'
                     ? 'liked'
@@ -98,7 +98,7 @@ export default function NotificationBell() {
                     : 'commented on your review of'}{' '}
                   <span className="font-semibold">{n.movieTitle}</span>
                   {(n.type === 'comment' || n.type === 'reply') && n.text && (
-                    <span className="mt-1 block text-white/50">"{n.text}"</span>
+                    <span className="mt-1 block text-ink/50">"{n.text}"</span>
                   )}
                 </span>
               </button>

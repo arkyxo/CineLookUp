@@ -76,13 +76,13 @@ export default function Watchlist() {
         </div>
 
         {items.length > 0 && (
-          <div className="flex overflow-hidden rounded-lg border border-white/10 bg-white/5">
+          <div className="flex overflow-hidden rounded-lg border border-ink/10 bg-ink/5">
             {SORTS.map((s) => (
               <button
                 key={s.key}
                 onClick={() => setSortKey(s.key)}
                 className={`px-3 py-1.5 text-xs font-medium transition ${
-                  sortKey === s.key ? 'bg-crimson-600 text-white' : 'text-white/70 hover:bg-white/10'
+                  sortKey === s.key ? 'bg-crimson-600 text-ink' : 'text-ink/70 hover:bg-ink/10'
                 }`}
               >
                 {s.label}
@@ -97,7 +97,7 @@ export default function Watchlist() {
           <button
             onClick={() => setGenreFilter(null)}
             className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
-              !genreFilter ? 'bg-crimson-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10'
+              !genreFilter ? 'bg-crimson-600 text-ink' : 'bg-ink/5 text-ink/60 hover:bg-ink/10'
             }`}
           >
             All Genres
@@ -107,7 +107,7 @@ export default function Watchlist() {
               key={g.id}
               onClick={() => setGenreFilter(g.id)}
               className={`rounded-full px-3 py-1.5 text-xs font-medium transition ${
-                genreFilter === g.id ? 'bg-crimson-600 text-white' : 'bg-white/5 text-white/60 hover:bg-white/10'
+                genreFilter === g.id ? 'bg-crimson-600 text-ink' : 'bg-ink/5 text-ink/60 hover:bg-ink/10'
               }`}
             >
               {g.name}
@@ -137,7 +137,7 @@ export default function Watchlist() {
           {visibleItems.map((item) => (
             <div key={item.id} className="group relative">
               <div
-                className="aspect-[2/3] cursor-pointer overflow-hidden rounded-lg bg-base-800"
+                className="aspect-[2/3] cursor-pointer overflow-hidden rounded-lg bg-elevated"
                 onClick={() => navigate(`/${item.mediaType}/${item.id}`)}
               >
                 {item.posterPath && (
@@ -145,7 +145,7 @@ export default function Watchlist() {
                 )}
               </div>
               <p className="mt-1.5 line-clamp-1 text-sm font-medium">{item.title}</p>
-              <button onClick={() => handleRemove(item)} className="mt-1 text-xs text-white/40 hover:text-crimson-400">
+              <button onClick={() => handleRemove(item)} className="mt-1 text-xs text-ink/40 hover:text-crimson-400">
                 Remove
               </button>
             </div>

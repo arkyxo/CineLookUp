@@ -18,7 +18,7 @@ export default function MovieRow({ title, items, watchlistIds, onToggleWatchlist
       <button
         aria-label="Scroll left"
         onClick={() => scrollBy(-1)}
-        className="absolute left-0 top-1/2 z-10 hidden h-full w-10 -translate-y-1/2 items-center justify-center bg-gradient-to-r from-base-950 to-transparent opacity-0 transition-opacity group-hover/row:opacity-100 sm:flex"
+        className="absolute left-0 top-1/2 z-10 hidden h-full w-10 -translate-y-1/2 items-center justify-center bg-gradient-to-r from-page to-transparent opacity-0 transition-opacity group-hover/row:opacity-100 sm:flex"
       >
         <ChevronLeft />
       </button>
@@ -38,7 +38,7 @@ export default function MovieRow({ title, items, watchlistIds, onToggleWatchlist
       <button
         aria-label="Scroll right"
         onClick={() => scrollBy(1)}
-        className="absolute right-0 top-1/2 z-10 hidden h-full w-10 -translate-y-1/2 items-center justify-center bg-gradient-to-l from-base-950 to-transparent opacity-0 transition-opacity group-hover/row:opacity-100 sm:flex"
+        className="absolute right-0 top-1/2 z-10 hidden h-full w-10 -translate-y-1/2 items-center justify-center bg-gradient-to-l from-page to-transparent opacity-0 transition-opacity group-hover/row:opacity-100 sm:flex"
       >
         <ChevronRight />
       </button>

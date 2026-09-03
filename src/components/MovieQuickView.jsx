@@ -68,13 +68,13 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-md overflow-hidden rounded-xl bg-base-850 shadow-2xl ring-1 ring-white/10"
+        className="relative w-full max-w-md overflow-hidden rounded-xl bg-card shadow-2xl ring-1 ring-ink/10"
         onClick={(e) => e.stopPropagation()}
       >
         <button
           onClick={onClose}
           aria-label="Close"
-          className="absolute right-3 top-3 z-10 rounded-full bg-black/60 p-1.5 text-white hover:bg-crimson-600"
+          className="absolute right-3 top-3 z-10 rounded-full bg-black/60 p-1.5 text-ink hover:bg-crimson-600"
         >
           <X size={16} />
         </button>
@@ -85,13 +85,13 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
             alt=""
             className="h-full w-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-base-850 via-base-850/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-card via-card/10 to-transparent" />
         </div>
 
         <div className="relative -mt-6 px-5 pb-5">
           <h2 className="font-display text-2xl tracking-wide sm:text-3xl">{title}</h2>
 
-          <div className="mt-1.5 flex items-center gap-3 text-sm text-white/70">
+          <div className="mt-1.5 flex items-center gap-3 text-sm text-ink/70">
             <span className="flex items-center gap-1 font-semibold text-crimson-400">
               <Star size={13} className="fill-crimson-400" />
               {item.vote_average ? item.vote_average.toFixed(1) : '—'}
@@ -102,7 +102,7 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
           {mode === 'info' ? (
             <>
               {item.overview && (
-                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-white/70">{item.overview}</p>
+                <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-ink/70">{item.overview}</p>
               )}
 
               <div className="mt-5 flex gap-3">
@@ -110,18 +110,18 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
                   onClick={handleTrailer}
                   className="flex flex-1 items-center justify-center gap-2 rounded-md bg-crimson-600 px-4 py-2.5 text-sm font-semibold hover:bg-crimson-500"
                 >
-                  <Play size={15} className="fill-white" /> Watch Trailer
+                  <Play size={15} className="fill-ink" /> Watch Trailer
                 </button>
                 <button
                   onClick={goToFullInfo}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-md bg-white/10 px-4 py-2.5 text-sm font-semibold hover:bg-white/20"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-md bg-ink/10 px-4 py-2.5 text-sm font-semibold hover:bg-ink/20"
                 >
                   <Info size={15} /> Full Info
                 </button>
               </div>
 
               {user && (
-                <div className="mt-4 border-t border-white/10 pt-4">
+                <div className="mt-4 border-t border-ink/10 pt-4">
                   {myReview ? (
                     <div className="flex items-center justify-between">
                       <StarRating value={myReview.rating} readOnly size={16} />
@@ -135,7 +135,7 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
                   ) : (
                     <button
                       onClick={() => setMode('review')}
-                      className="w-full rounded-md border border-white/15 py-2 text-sm font-semibold text-white/80 hover:bg-white/5"
+                      className="w-full rounded-md border border-ink/15 py-2 text-sm font-semibold text-ink/80 hover:bg-ink/5"
                     >
                       Review
                     </button>
@@ -147,18 +147,18 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
             <div className="mt-4">
               <button
                 onClick={() => setMode('info')}
-                className="mb-3 flex items-center gap-1 text-xs text-white/50 hover:text-white"
+                className="mb-3 flex items-center gap-1 text-xs text-ink/50 hover:text-ink"
               >
                 <ArrowLeft size={12} /> Back
               </button>
-              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/50">Your Rating</p>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink/50">Your Rating</p>
               <StarRating value={draftRating} onChange={setDraftRating} size={22} />
               <textarea
                 value={draftText}
                 onChange={(e) => setDraftText(e.target.value)}
                 placeholder="Write a review… (optional)"
                 rows={4}
-                className="mt-3 w-full resize-none rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 focus:border-crimson-500"
+                className="mt-3 w-full resize-none rounded-md border border-ink/10 bg-ink/5 px-3 py-2 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
               />
               <button
                 onClick={submitReview}

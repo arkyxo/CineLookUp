@@ -4,9 +4,9 @@ import { Film } from 'lucide-react';
 export default function NotFound() {
   return (
     <div className="flex min-h-[70vh] flex-col items-center justify-center gap-4 px-4 text-center">
-      <Film size={40} className="text-white/20" />
+      <Film size={40} className="text-ink/20" />
       <h1 className="font-display text-5xl tracking-wide">404</h1>
-      <p className="max-w-sm text-sm text-white/50">
+      <p className="max-w-sm text-sm text-ink/50">
         We couldn't find that page. It may have been moved, or the link might be broken.
       </p>
       <Link

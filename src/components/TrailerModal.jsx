@@ -15,7 +15,7 @@ export default function TrailerModal({ videoKey, title, onClose }) {
         <button
           onClick={onClose}
           aria-label="Close trailer"
-          className="absolute right-3 top-3 z-10 rounded-full bg-black/60 p-1.5 text-white hover:bg-crimson-600"
+          className="absolute right-3 top-3 z-10 rounded-full bg-black/60 p-1.5 text-ink hover:bg-crimson-600"
         >
           <X size={18} />
         </button>

@@ -22,7 +22,7 @@ export function ToastProvider({ children }) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/10 bg-base-850/95 px-4 py-2.5 text-sm font-medium text-white shadow-2xl backdrop-blur animate-toast-in"
+            className="pointer-events-auto flex items-center gap-2 rounded-full border border-ink/10 bg-card/95 px-4 py-2.5 text-sm font-medium text-ink shadow-2xl backdrop-blur animate-toast-in"
           >
             <Check size={14} className="flex-shrink-0 text-crimson-400" />
             {t.message}

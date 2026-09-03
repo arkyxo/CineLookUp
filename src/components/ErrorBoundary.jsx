@@ -15,10 +15,10 @@ export default class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-base-950 px-4 text-center text-white">
+        <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-page px-4 text-center text-ink">
           <AlertTriangle size={36} className="text-crimson-500" />
           <h1 className="text-xl font-semibold">Something went wrong</h1>
-          <p className="max-w-sm text-sm text-white/50">
+          <p className="max-w-sm text-sm text-ink/50">
             The app hit an unexpected error. Reloading the page usually fixes it.
           </p>
           <button

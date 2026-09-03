@@ -113,13 +113,13 @@ export default function MovieDetails() {
         <img
           src={imageUrl(data.poster_path, 'w342')}
           alt={title}
-          className="hidden w-48 flex-shrink-0 rounded-lg shadow-2xl ring-1 ring-white/10 sm:block"
+          className="hidden w-48 flex-shrink-0 rounded-lg shadow-2xl ring-1 ring-ink/10 sm:block"
         />
 
         <div className="flex-1">
           <h1 className="font-display text-4xl tracking-wide sm:text-5xl">{title}</h1>
 
-          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-white/70">
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-sm text-ink/70">
             {year && <span>{year}</span>}
             {runtime && <span>{Math.floor(runtime / 60)}h {runtime % 60}m</span>}
             {data.genres?.length > 0 && <span>{data.genres.map((g) => g.name).join(', ')}</span>}
@@ -128,9 +128,9 @@ export default function MovieDetails() {
             </span>
           </div>
 
-          {director && <p className="mt-3 text-sm text-white/50">Directed by {director}</p>}
+          {director && <p className="mt-3 text-sm text-ink/50">Directed by {director}</p>}
 
-          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80 sm:text-base">
+          <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink/80 sm:text-base">
             {data.overview}
           </p>
 
@@ -140,33 +140,33 @@ export default function MovieDetails() {
                 onClick={() => setTrailerOpen(true)}
                 className="flex items-center gap-2 rounded-md bg-crimson-600 px-5 py-2.5 text-sm font-semibold hover:bg-crimson-500"
               >
-                <Play size={16} className="fill-white" /> Watch Trailer
+                <Play size={16} className="fill-ink" /> Watch Trailer
               </button>
             )}
             <button
               onClick={() => toggleList('watchlist', inWatchlist, setInWatchlist)}
-              className="flex items-center gap-2 rounded-md bg-white/10 px-5 py-2.5 text-sm font-semibold backdrop-blur hover:bg-white/20"
+              className="flex items-center gap-2 rounded-md bg-ink/10 px-5 py-2.5 text-sm font-semibold backdrop-blur hover:bg-ink/20"
             >
               {inWatchlist ? <Check size={16} /> : <Plus size={16} />}
               {inWatchlist ? 'In Watchlist' : 'Add to Watchlist'}
             </button>
             <button
               onClick={() => toggleList('privateList', inPrivateList, setInPrivateList)}
-              className="flex items-center gap-2 rounded-md bg-white/10 px-5 py-2.5 text-sm font-semibold backdrop-blur hover:bg-white/20"
+              className="flex items-center gap-2 rounded-md bg-ink/10 px-5 py-2.5 text-sm font-semibold backdrop-blur hover:bg-ink/20"
             >
               {inPrivateList ? <Lock size={16} /> : <LockOpen size={16} />}
               {inPrivateList ? 'In Private List' : 'Add to Private List'}
             </button>
             <button
               onClick={() => (requireAuth() ? setListModalOpen(true) : null)}
-              className="flex items-center gap-2 rounded-md bg-white/10 px-5 py-2.5 text-sm font-semibold backdrop-blur hover:bg-white/20"
+              className="flex items-center gap-2 rounded-md bg-ink/10 px-5 py-2.5 text-sm font-semibold backdrop-blur hover:bg-ink/20"
             >
               <ListPlus size={16} /> Add to List
             </button>
           </div>
 
           <div className="mt-6">
-            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/50">
+            <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-ink/50">
               Your Review
             </p>
             {myReview ? (
@@ -182,7 +182,7 @@ export default function MovieDetails() {
             ) : (
               <button
                 onClick={() => (requireAuth() ? setReviewOpen(true) : null)}
-                className="rounded-md bg-white/10 px-5 py-2 text-sm font-semibold hover:bg-white/20"
+                className="rounded-md bg-ink/10 px-5 py-2 text-sm font-semibold hover:bg-ink/20"
               >
                 Write a Review
               </button>
@@ -190,7 +190,7 @@ export default function MovieDetails() {
           </div>
 
           <div className="mt-6">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/50">
               Where to Watch
             </p>
             {providers?.flatrate?.length > 0 ? (
@@ -200,9 +200,9 @@ export default function MovieDetails() {
                     <img
                       src={imageUrl(p.logo_path, 'w92')}
                       alt={p.provider_name}
-                      className="h-10 w-10 rounded-lg ring-1 ring-white/10"
+                      className="h-10 w-10 rounded-lg ring-1 ring-ink/10"
                     />
-                    <span className="max-w-[56px] text-center text-[10px] leading-tight text-white/50 line-clamp-2">
+                    <span className="max-w-[56px] text-center text-[10px] leading-tight text-ink/50 line-clamp-2">
                       {p.provider_name}
                     </span>
                   </div>
@@ -210,7 +210,7 @@ export default function MovieDetails() {
               </div>
             ) : providers?.rent?.length > 0 || providers?.buy?.length > 0 ? (
               <div>
-                <p className="mb-1.5 text-[11px] text-white/40">Not on a subscription — available to rent or buy</p>
+                <p className="mb-1.5 text-[11px] text-ink/40">Not on a subscription — available to rent or buy</p>
                 <div className="flex flex-wrap gap-3">
                   {[...(providers.rent || []), ...(providers.buy || [])]
                     .filter((p, i, arr) => arr.findIndex((x) => x.provider_id === p.provider_id) === i)
@@ -220,20 +220,20 @@ export default function MovieDetails() {
                         src={imageUrl(p.logo_path, 'w92')}
                         alt={p.provider_name}
                         title={p.provider_name}
-                        className="h-10 w-10 rounded-lg ring-1 ring-white/10"
+                        className="h-10 w-10 rounded-lg ring-1 ring-ink/10"
                       />
                     ))}
                 </div>
               </div>
             ) : (
-              <p className="text-xs text-white/30">Streaming availability isn't listed for your region.</p>
+              <p className="text-xs text-ink/30">Streaming availability isn't listed for your region.</p>
             )}
             {providers?.link && (
               <a
                 href={providers.link}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-3 inline-block text-[11px] text-white/30 hover:text-white/50"
+                className="mt-3 inline-block text-[11px] text-ink/30 hover:text-ink/50"
               >
                 Streaming data provided by JustWatch
               </a>
@@ -252,13 +252,13 @@ export default function MovieDetails() {
                 className="w-24 flex-shrink-0 cursor-pointer text-center"
                 onClick={() => navigate(`/person/${c.id}`)}
               >
-                <div className="aspect-[2/3] overflow-hidden rounded-lg bg-base-800">
+                <div className="aspect-[2/3] overflow-hidden rounded-lg bg-elevated">
                   {c.profile_path && (
                     <img src={imageUrl(c.profile_path, 'w185')} alt={c.name} className="h-full w-full object-cover" />
                   )}
                 </div>
                 <p className="mt-1 line-clamp-1 text-xs font-medium">{c.name}</p>
-                <p className="line-clamp-1 text-[11px] text-white/40">{c.character}</p>
+                <p className="line-clamp-1 text-[11px] text-ink/40">{c.character}</p>
               </div>
             ))}
           </div>

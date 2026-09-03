@@ -132,9 +132,9 @@ export default function ReviewCard({ review }) {
   const hiddenCount = Math.max(0, topLevel.length - PREVIEW_COUNT);
 
   return (
-    <div className="flex gap-4 rounded-xl border border-white/10 bg-base-850 p-4">
+    <div className="flex gap-4 rounded-xl border border-ink/10 bg-card p-4">
       <div
-        className="h-24 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md bg-base-800"
+        className="h-24 w-16 flex-shrink-0 cursor-pointer overflow-hidden rounded-md bg-elevated"
         onClick={goToTitle}
       >
         {review.posterPath && (
@@ -155,7 +155,7 @@ export default function ReviewCard({ review }) {
         <div className="mt-0.5 flex items-center justify-between">
           <Link
             to={`/u/${review.username}`}
-            className="text-xs font-medium text-white/40 hover:text-crimson-400 hover:underline"
+            className="text-xs font-medium text-ink/40 hover:text-crimson-400 hover:underline"
           >
             @{review.username || 'Anonymous'}
           </Link>
@@ -163,17 +163,17 @@ export default function ReviewCard({ review }) {
             onClick={handleToggleLike}
             disabled={!user || likeBusy}
             className={`flex items-center gap-1 text-xs font-medium transition ${
-              liked ? 'text-crimson-400' : 'text-white/40 hover:text-white'
+              liked ? 'text-crimson-400' : 'text-ink/40 hover:text-ink'
             } disabled:cursor-default`}
           >
             <Heart size={13} className={liked ? 'fill-crimson-400' : ''} />
             {likes ? likes.length : ''}
           </button>
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-white/80">{review.review}</p>
+        <p className="mt-2 text-sm leading-relaxed text-ink/80">{review.review}</p>
 
-        <div className="mt-3 border-t border-white/10 pt-3">
-          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-white/50">
+        <div className="mt-3 border-t border-ink/10 pt-3">
+          <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-ink/50">
             <MessageCircle size={13} />
             {comments === null ? 'Loading comments…' : `${comments.length} comment${comments.length !== 1 ? 's' : ''}`}
           </div>
@@ -181,16 +181,16 @@ export default function ReviewCard({ review }) {
           <div className="flex flex-col gap-3">
             {visibleTopLevel.map((c) => (
               <div key={c.id}>
-                <div className="rounded-md bg-white/5 px-3 py-2">
-                  <p className="text-xs font-semibold text-white/70">@{c.username || 'Anonymous'}</p>
-                  <p className="mt-0.5 text-sm text-white/80">{c.text}</p>
+                <div className="rounded-md bg-ink/5 px-3 py-2">
+                  <p className="text-xs font-semibold text-ink/70">@{c.username || 'Anonymous'}</p>
+                  <p className="mt-0.5 text-sm text-ink/80">{c.text}</p>
                   {user && (
                     <button
                       onClick={() => {
                         setReplyingTo(replyingTo === c.id ? null : c.id);
                         setReplyDraft('');
                       }}
-                      className="mt-1 text-[11px] font-medium text-white/40 hover:text-crimson-400"
+                      className="mt-1 text-[11px] font-medium text-ink/40 hover:text-crimson-400"
                     >
                       Reply
                     </button>
@@ -199,10 +199,10 @@ export default function ReviewCard({ review }) {
 
                 {repliesFor(c.id).map((r) => (
                   <div key={r.id} className="ml-6 mt-2 flex items-start gap-1.5">
-                    <CornerDownRight size={12} className="mt-2.5 flex-shrink-0 text-white/20" />
-                    <div className="flex-1 rounded-md bg-white/[0.03] px-3 py-2">
-                      <p className="text-xs font-semibold text-white/70">@{r.username || 'Anonymous'}</p>
-                      <p className="mt-0.5 text-sm text-white/80">{r.text}</p>
+                    <CornerDownRight size={12} className="mt-2.5 flex-shrink-0 text-ink/20" />
+                    <div className="flex-1 rounded-md bg-ink/[0.03] px-3 py-2">
+                      <p className="text-xs font-semibold text-ink/70">@{r.username || 'Anonymous'}</p>
+                      <p className="mt-0.5 text-sm text-ink/80">{r.text}</p>
                     </div>
                   </div>
                 ))}
@@ -215,7 +215,7 @@ export default function ReviewCard({ review }) {
                       onChange={(e) => setReplyDraft(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && postReply(c)}
                       placeholder={`Reply to @${c.username}…`}
-                      className="flex-1 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 focus:border-crimson-500"
+                      className="flex-1 rounded-md border border-ink/10 bg-ink/5 px-3 py-2 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
                     />
                     <button
                       onClick={() => postReply(c)}
@@ -246,7 +246,7 @@ export default function ReviewCard({ review }) {
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && postComment()}
                 placeholder="Add a comment…"
-                className="flex-1 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 focus:border-crimson-500"
+                className="flex-1 rounded-md border border-ink/10 bg-ink/5 px-3 py-2 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
               />
               <button
                 onClick={postComment}

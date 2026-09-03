@@ -36,26 +36,26 @@ export default function Profile() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 pb-16 pt-8 sm:px-8">
-      <div className="flex flex-col items-start justify-between gap-6 rounded-xl border border-white/10 bg-base-850 p-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col items-start justify-between gap-6 rounded-xl border border-ink/10 bg-card p-6 sm:flex-row sm:items-center">
         <div className="flex items-center gap-4">
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-crimson-600 text-2xl font-semibold uppercase">
             {(user.displayName || user.email)[0]}
           </div>
           <div>
             <h1 className="text-xl font-semibold">{user.displayName || 'Movie Fan'}</h1>
-            <p className="text-sm text-white/50">{user.email}</p>
+            <p className="text-sm text-ink/50">{user.email}</p>
           </div>
         </div>
         <div className="flex gap-3">
           <Link
             to="/stats"
-            className="flex items-center gap-2 rounded-md bg-white/10 px-4 py-2 text-sm font-medium hover:bg-white/20"
+            className="flex items-center gap-2 rounded-md bg-ink/10 px-4 py-2 text-sm font-medium hover:bg-ink/20"
           >
             <TrendingUp size={15} /> Stats
           </Link>
           <Link
             to="/settings"
-            className="flex items-center gap-2 rounded-md bg-white/10 px-4 py-2 text-sm font-medium hover:bg-white/20"
+            className="flex items-center gap-2 rounded-md bg-ink/10 px-4 py-2 text-sm font-medium hover:bg-ink/20"
           >
             <Settings size={15} /> Settings
           </Link>
@@ -81,7 +81,7 @@ export default function Profile() {
           <div className="grid grid-cols-3 gap-4 sm:grid-cols-5 md:grid-cols-6">
             {stats.ratings.map((r) => (
               <div key={r.id} className="cursor-pointer" onClick={() => navigate(`/${r.mediaType || 'movie'}/${r.id}`)}>
-                <div className="aspect-[2/3] overflow-hidden rounded-lg bg-base-800">
+                <div className="aspect-[2/3] overflow-hidden rounded-lg bg-elevated">
                   {r.posterPath && <img src={imageUrl(r.posterPath, 'w185')} alt={r.title} className="h-full w-full object-cover" />}
                 </div>
                 <p className="mt-1 line-clamp-1 text-xs font-medium">{r.title}</p>
@@ -97,9 +97,9 @@ export default function Profile() {
 
 function Stat({ label, value }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-base-850 p-4 text-center">
+    <div className="rounded-xl border border-ink/10 bg-card p-4 text-center">
       <p className="font-display text-3xl text-crimson-400">{value}</p>
-      <p className="mt-1 text-xs uppercase tracking-wide text-white/50">{label}</p>
+      <p className="mt-1 text-xs uppercase tracking-wide text-ink/50">{label}</p>
     </div>
   );
 }

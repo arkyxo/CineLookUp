@@ -25,7 +25,7 @@ export default function Reviews() {
   return (
     <div className="mx-auto max-w-3xl px-4 pb-16 pt-8 sm:px-8">
       <h1 className="mb-1 text-2xl font-semibold">Review Hall</h1>
-      <p className="mb-6 text-sm text-white/50">See what everyone's watching, rating, and saying.</p>
+      <p className="mb-6 text-sm text-ink/50">See what everyone's watching, rating, and saying.</p>
 
       {error ? (
         <ErrorState title="Couldn't load Review Hall" onRetry={() => setReloadKey((k) => k + 1)} />

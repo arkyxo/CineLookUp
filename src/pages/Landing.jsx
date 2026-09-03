@@ -74,7 +74,7 @@ export default function Landing() {
           <PosterMarquee items={rowB} direction="right" />
           <PosterMarquee items={rowA} direction="left" />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-base-950/40 via-base-950/80 to-base-950" />
+        <div className="absolute inset-0 bg-gradient-to-b from-page/40 via-page/80 to-page" />
 
         <div className="relative mx-auto flex min-h-[80vh] max-w-3xl flex-col items-center justify-center px-4 text-center">
           <span className="text-xs font-semibold uppercase tracking-[0.3em] text-crimson-400">
@@ -84,7 +84,7 @@ export default function Landing() {
             Every film you mean to watch,
             <br className="hidden sm:block" /> in one place
           </h1>
-          <p className="mt-5 max-w-xl text-base text-white/70 sm:text-lg">
+          <p className="mt-5 max-w-xl text-base text-ink/70 sm:text-lg">
             Search thousands of movies and shows, save what catches your eye, and rate what you finish —
             all synced to your account.
           </p>
@@ -98,7 +98,7 @@ export default function Landing() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Email address"
-              className="w-full rounded-md border border-white/15 bg-black/40 px-4 py-3 text-sm outline-none backdrop-blur placeholder:text-white/40 focus:border-crimson-500"
+              className="w-full rounded-md border border-ink/15 bg-black/40 px-4 py-3 text-sm outline-none backdrop-blur placeholder:text-ink/40 focus:border-crimson-500"
             />
             <button
               type="submit"
@@ -107,7 +107,7 @@ export default function Landing() {
               Get Started
             </button>
           </form>
-          <p className="mt-3 text-xs text-white/40">Free account. No payment required.</p>
+          <p className="mt-3 text-xs text-ink/40">Free account. No payment required.</p>
         </div>
       </div>
 
@@ -115,10 +115,10 @@ export default function Landing() {
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-8">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {FEATURES.map(({ icon: Icon, title, body }) => (
-            <div key={title} className="rounded-xl border border-white/10 bg-base-850 p-6">
+            <div key={title} className="rounded-xl border border-ink/10 bg-card p-6">
               <Icon size={22} className="text-crimson-500" />
               <h3 className="mt-4 font-semibold">{title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-white/60">{body}</p>
+              <p className="mt-2 text-sm leading-relaxed text-ink/60">{body}</p>
             </div>
           ))}
         </div>
@@ -127,7 +127,7 @@ export default function Landing() {
       {/* FAQ */}
       <div className="mx-auto max-w-2xl px-4 pb-20 sm:px-8">
         <h2 className="mb-6 text-center font-display text-3xl tracking-wide">Frequently Asked Questions</h2>
-        <div className="divide-y divide-white/10 rounded-xl border border-white/10 bg-base-850">
+        <div className="divide-y divide-ink/10 rounded-xl border border-ink/10 bg-card">
           {FAQ.map((item, i) => (
             <div key={item.q}>
               <button
@@ -137,11 +137,11 @@ export default function Landing() {
                 {item.q}
                 <ChevronDown
                   size={16}
-                  className={`flex-shrink-0 text-white/40 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}
+                  className={`flex-shrink-0 text-ink/40 transition-transform ${openFaq === i ? 'rotate-180' : ''}`}
                 />
               </button>
               {openFaq === i && (
-                <p className="px-5 pb-4 text-sm leading-relaxed text-white/60">{item.a}</p>
+                <p className="px-5 pb-4 text-sm leading-relaxed text-ink/60">{item.a}</p>
               )}
             </div>
           ))}

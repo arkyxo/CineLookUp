@@ -35,7 +35,7 @@ function Root() {
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-base-950 text-white">
+    <div className="min-h-screen bg-page text-ink">
       <Navbar />
       <Routes>
         <Route path="/" element={<Root />} />

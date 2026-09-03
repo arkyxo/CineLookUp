@@ -35,31 +35,31 @@ export default function Signup() {
 
   return (
     <div className="flex min-h-[75vh] items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-xl border border-white/10 bg-base-850 p-8">
+      <div className="w-full max-w-sm rounded-xl border border-ink/10 bg-card p-8">
         <h1 className="font-display text-3xl tracking-wide">Create Account</h1>
-        <p className="mt-1 text-sm text-white/50">
+        <p className="mt-1 text-sm text-ink/50">
           You'll get a unique username automatically — save watchlists, write reviews, and keep a private collection.
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 flex flex-col gap-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-white/60">Email</label>
+            <label className="mb-1 block text-xs font-medium text-ink/60">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
+              className="w-full rounded-md border border-ink/10 bg-ink/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
             />
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-white/60">Password</label>
+            <label className="mb-1 block text-xs font-medium text-ink/60">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-md border border-white/10 bg-white/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
+              className="w-full rounded-md border border-ink/10 bg-ink/5 px-3 py-2.5 text-sm outline-none focus:border-crimson-500"
             />
           </div>
 
@@ -78,7 +78,7 @@ export default function Signup() {
           </button>
         </form>
 
-        <p className="mt-6 text-center text-sm text-white/50">
+        <p className="mt-6 text-center text-sm text-ink/50">
           Already have an account?{' '}
           <Link to="/login" className="font-medium text-crimson-400 hover:underline">
             Log In

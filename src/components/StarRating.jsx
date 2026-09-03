@@ -20,7 +20,7 @@ export default function StarRating({ value = 0, onChange, size = 20, readOnly = 
         >
           <Star
             size={size}
-            className={n <= display ? 'fill-crimson-400 text-crimson-400' : 'text-white/25'}
+            className={n <= display ? 'fill-crimson-400 text-crimson-400' : 'text-ink/25'}
           />
         </button>
       ))}

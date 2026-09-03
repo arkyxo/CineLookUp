@@ -167,7 +167,7 @@ export default function Home() {
       <Hero item={hero} inWatchlist={watchlistIds.has(hero?.id)} onToggleWatchlist={toggleWatchlist} onPlayTrailer={playTrailer} />
 
       {ratedButNoRecs && (
-        <p className="mx-4 mt-6 rounded-lg border border-white/10 bg-base-850 px-4 py-3 text-sm text-white/60 sm:mx-8">
+        <p className="mx-4 mt-6 rounded-lg border border-ink/10 bg-card px-4 py-3 text-sm text-ink/60 sm:mx-8">
           Rate a few titles and we'll start recommending movies just for you.
         </p>
       )}

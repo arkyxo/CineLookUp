@@ -24,6 +24,7 @@ import {
   collection,
   collectionGroup,
   runTransaction,
+  onSnapshot,
 } from 'firebase/firestore';
 
 const firebaseConfig = {
@@ -176,19 +177,24 @@ export const getAllReviews = async (max = 100) => {
 
 // ---- Side comments on a review: users/{reviewerUid}/ratings/{movieId}/comments/{commentId} ----
 // Any signed-in user can read and post; only the comment's own author can delete it.
+// A reply is just a comment with `parentId` set to the comment it's replying
+// to — reusing the same collection/rules instead of adding a new one.
 
 const commentsCollection = (reviewerUid, movieId) =>
   collection(db, 'users', reviewerUid, 'ratings', String(movieId), 'comments');
 
-export const addComment = async (reviewerUid, movieId, text, author, movieInfo = {}) => {
+export const addComment = async (reviewerUid, movieId, text, author, movieInfo = {}, parent = null) => {
   await addDoc(commentsCollection(reviewerUid, movieId), {
     text,
     uid: author.uid,
     username: author.username || 'Anonymous',
+    parentId: parent?.id || null,
     createdAt: Date.now(),
   });
-  addNotification(reviewerUid, {
-    type: 'comment',
+
+  const notifyUid = parent ? parent.uid : reviewerUid;
+  addNotification(notifyUid, {
+    type: parent ? 'reply' : 'comment',
     fromUid: author.uid,
     fromUsername: author.username || 'Anonymous',
     movieId,
@@ -264,6 +270,21 @@ export const getNotifications = async (uid, max = 50) => {
     .sort((a, b) => b.createdAt - a.createdAt)
     .slice(0, max);
 };
+
+// Real-time version — fires the callback immediately with current data, then
+// again every time a notification is added/changed, no refresh needed.
+// Returns an unsubscribe function; call it on cleanup (e.g. in useEffect).
+export const watchNotifications = (uid, onChange) =>
+  onSnapshot(
+    notificationsCollection(uid),
+    (snap) => {
+      const list = snap.docs
+        .map((d) => ({ id: d.id, ...d.data() }))
+        .sort((a, b) => b.createdAt - a.createdAt);
+      onChange(list);
+    },
+    (err) => console.error('Notifications listener error:', err)
+  );
 
 export const markNotificationRead = (uid, notifId) =>
   updateDoc(doc(db, 'users', uid, 'notifications', notifId), { read: true });

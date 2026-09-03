@@ -60,44 +60,44 @@ export default function AddToListModal({ item, onClose }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4" onClick={onClose}>
       <div
-        className="w-full max-w-sm rounded-xl bg-base-850 p-5 shadow-2xl ring-1 ring-white/10"
+        className="w-full max-w-sm rounded-xl bg-card p-5 shadow-2xl ring-1 ring-ink/10"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold">Add to List</h2>
-          <button onClick={onClose} className="text-white/50 hover:text-white">
+          <button onClick={onClose} className="text-ink/50 hover:text-ink">
             <X size={16} />
           </button>
         </div>
 
         {lists === null ? (
-          <p className="text-xs text-white/40">Loading…</p>
+          <p className="text-xs text-ink/40">Loading…</p>
         ) : (
           <div className="flex max-h-60 flex-col gap-1 overflow-y-auto">
-            {lists.length === 0 && <p className="text-xs text-white/40">No lists yet — create one below.</p>}
+            {lists.length === 0 && <p className="text-xs text-ink/40">No lists yet — create one below.</p>}
             {lists.map((l) => (
               <button
                 key={l.id}
                 onClick={() => toggleList(l.id)}
-                className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-white/5"
+                className="flex items-center justify-between rounded-md px-3 py-2 text-sm hover:bg-ink/5"
               >
                 <span>{l.name}</span>
                 {membership[l.id] ? (
                   <Check size={15} className="text-crimson-400" />
                 ) : (
-                  <Plus size={15} className="text-white/30" />
+                  <Plus size={15} className="text-ink/30" />
                 )}
               </button>
             ))}
           </div>
         )}
 
-        <form onSubmit={handleCreate} className="mt-4 flex gap-2 border-t border-white/10 pt-4">
+        <form onSubmit={handleCreate} className="mt-4 flex gap-2 border-t border-ink/10 pt-4">
           <input
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="New list name…"
-            className="flex-1 rounded-md border border-white/10 bg-white/5 px-3 py-2 text-sm outline-none placeholder:text-white/30 focus:border-crimson-500"
+            className="flex-1 rounded-md border border-ink/10 bg-ink/5 px-3 py-2 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
           />
           <button
             type="submit"

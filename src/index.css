@@ -2,8 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ---- Theme variables ---- */
+/* RGB triplets (no rgb() wrapper) so Tailwind's opacity modifiers work,
+   e.g. text-ink/50 becomes rgb(var(--color-ink) / 0.5). Dark is the default
+   (matches the app's original design); .light on <html> overrides it. */
+:root {
+  --color-page: 7 7 10;
+  --color-card: 18 18 24;
+  --color-elevated: 24 24 31;
+  --color-ink: 255 255 255;
+  --color-line: 255 255 255;
+}
+
+.light {
+  --color-page: 246 243 238;
+  --color-card: 255 255 255;
+  --color-elevated: 236 232 224;
+  --color-ink: 26 26 31;
+  --color-line: 26 26 31;
+}
+
 html {
   scroll-behavior: smooth;
+  background-color: rgb(var(--color-page));
 }
 
 body {
@@ -25,10 +46,13 @@ body {
   outline-offset: 2px;
 }
 
-/* Native <select> popups otherwise render with light-on-light text since
-   the browser doesn't know this is a dark-themed page. */
+/* Native <select> popups otherwise render with mismatched contrast since
+   the browser doesn't know which theme is active. */
 select {
   color-scheme: dark;
+}
+.light select {
+  color-scheme: light;
 }
 
 @keyframes marquee-left {

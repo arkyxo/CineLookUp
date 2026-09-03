@@ -67,7 +67,7 @@ export default function Search() {
 
       {titles.length > 0 && (
         <div className="mb-10">
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/50">Titles</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink/50">Titles</h2>
           <div className="flex flex-wrap gap-4">
             {titles.map((item) => (
               <MovieCard key={`${item.media_type}-${item.id}`} item={item} />
@@ -78,7 +78,7 @@ export default function Search() {
 
       {people.length > 0 && (
         <div>
-          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-white/50">People</h2>
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-ink/50">People</h2>
           <div className="flex flex-wrap gap-4">
             {people.map((p) => (
               <div
@@ -86,7 +86,7 @@ export default function Search() {
                 className="w-28 cursor-pointer text-center"
                 onClick={() => navigate(`/person/${p.id}`)}
               >
-                <div className="aspect-[2/3] overflow-hidden rounded-lg bg-base-800">
+                <div className="aspect-[2/3] overflow-hidden rounded-lg bg-elevated">
                   {p.profile_path && (
                     <img src={imageUrl(p.profile_path, 'w185')} alt={p.name} className="h-full w-full object-cover" />
                   )}

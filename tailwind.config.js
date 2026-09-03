@@ -17,14 +17,22 @@ export default {
           600: '#c41230',
           700: '#9c0e26',
         },
+        // Theme-aware semantic colors — flip automatically between dark and
+        // light via CSS variables (see index.css), while still supporting
+        // Tailwind's opacity modifiers (e.g. text-ink/50, border-line/10).
+        page: 'rgb(var(--color-page) / <alpha-value>)',
+        card: 'rgb(var(--color-card) / <alpha-value>)',
+        elevated: 'rgb(var(--color-elevated) / <alpha-value>)',
+        ink: 'rgb(var(--color-ink) / <alpha-value>)',
+        line: 'rgb(var(--color-line) / <alpha-value>)',
       },
       fontFamily: {
         display: ['"Bebas Neue"', 'Impact', 'sans-serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
-        'fade-bottom': 'linear-gradient(to top, #07070a 0%, rgba(7,7,10,0.6) 40%, transparent 100%)',
-        'fade-left': 'linear-gradient(to right, #07070a 10%, transparent 60%)',
+        'fade-bottom': 'linear-gradient(to top, rgb(var(--color-page)) 0%, rgb(var(--color-page) / 0.6) 40%, transparent 100%)',
+        'fade-left': 'linear-gradient(to right, rgb(var(--color-page)) 10%, transparent 60%)',
       },
     },
   },

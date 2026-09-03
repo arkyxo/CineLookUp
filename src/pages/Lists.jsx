@@ -42,14 +42,14 @@ export default function Lists() {
   return (
     <div className="mx-auto max-w-4xl px-4 pb-16 pt-8 sm:px-8">
       <h1 className="mb-1 text-2xl font-semibold">My Lists</h1>
-      <p className="mb-6 text-sm text-white/50">Organize movies into your own custom collections.</p>
+      <p className="mb-6 text-sm text-ink/50">Organize movies into your own custom collections.</p>
 
       <form onSubmit={handleCreate} className="mb-8 flex gap-2">
         <input
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           placeholder="New list name…"
-          className="flex-1 rounded-md border border-white/10 bg-white/5 px-4 py-2.5 text-sm outline-none placeholder:text-white/30 focus:border-crimson-500"
+          className="flex-1 rounded-md border border-ink/10 bg-ink/5 px-4 py-2.5 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
         />
         <button
           type="submit"
@@ -72,14 +72,14 @@ export default function Lists() {
             <button
               key={l.id}
               onClick={() => navigate(`/lists/${l.id}`)}
-              className="rounded-xl border border-white/10 bg-base-850 p-5 text-left hover:border-crimson-500/50"
+              className="rounded-xl border border-ink/10 bg-card p-5 text-left hover:border-crimson-500/50"
             >
               <div className="flex items-center gap-2 text-crimson-400">
                 <ListVideo size={16} />
                 <span className="text-xs font-semibold uppercase tracking-wide">List</span>
               </div>
               <h3 className="mt-2 font-semibold">{l.name}</h3>
-              {l.description && <p className="mt-1 text-xs text-white/50 line-clamp-2">{l.description}</p>}
+              {l.description && <p className="mt-1 text-xs text-ink/50 line-clamp-2">{l.description}</p>}
             </button>
           ))}
         </div>

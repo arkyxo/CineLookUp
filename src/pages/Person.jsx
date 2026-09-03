@@ -35,7 +35,7 @@ export default function Person() {
         <img
           src={imageUrl(person.profile_path, 'w342')}
           alt={person.name}
-          className="w-48 flex-shrink-0 rounded-lg object-cover ring-1 ring-white/10"
+          className="w-48 flex-shrink-0 rounded-lg object-cover ring-1 ring-ink/10"
         />
         <div className="flex-1">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-crimson-500">
@@ -43,20 +43,20 @@ export default function Person() {
           </p>
           <h1 className="font-display text-4xl tracking-wide sm:text-5xl">{person.name}</h1>
           {person.birthday && (
-            <p className="mt-2 text-sm text-white/50">
+            <p className="mt-2 text-sm text-ink/50">
               Born {new Date(person.birthday).toLocaleDateString()}
               {person.place_of_birth ? ` · ${person.place_of_birth}` : ''}
             </p>
           )}
           {person.biography && (
-            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-white/80">
+            <p className="mt-4 max-w-2xl text-sm leading-relaxed text-ink/80">
               {person.biography.length > 600 ? `${person.biography.slice(0, 600)}…` : person.biography}
             </p>
           )}
 
           {knownFor.length > 0 && (
             <div className="mt-6">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-white/50">Known For</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink/50">Known For</p>
               <div className="flex flex-wrap gap-3">
                 {knownFor.map((c) => (
                   <div
@@ -64,7 +64,7 @@ export default function Person() {
                     className="w-24 cursor-pointer"
                     onClick={() => navigate(`/${c.media_type}/${c.id}`)}
                   >
-                    <div className="aspect-[2/3] overflow-hidden rounded-lg bg-base-800">
+                    <div className="aspect-[2/3] overflow-hidden rounded-lg bg-elevated">
                       <img src={imageUrl(c.poster_path, 'w185')} alt="" className="h-full w-full object-cover" />
                     </div>
                     <p className="mt-1 line-clamp-1 text-xs">{c.title || c.name}</p>
@@ -86,11 +86,11 @@ export default function Person() {
                 className="cursor-pointer"
                 onClick={() => navigate(`/${c.media_type}/${c.id}`)}
               >
-                <div className="aspect-[2/3] overflow-hidden rounded-lg bg-base-800">
+                <div className="aspect-[2/3] overflow-hidden rounded-lg bg-elevated">
                   <img src={imageUrl(c.poster_path, 'w185')} alt="" className="h-full w-full object-cover" />
                 </div>
                 <p className="mt-1 line-clamp-1 text-xs font-medium">{c.title || c.name}</p>
-                <p className="text-[11px] text-white/40">
+                <p className="text-[11px] text-ink/40">
                   {(c.release_date || c.first_air_date || '').slice(0, 4)} · {c.character}
                 </p>
               </div>

@@ -71,13 +71,13 @@ export default function PublicProfile() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 pb-16 pt-8 sm:px-8">
-      <div className="flex items-center gap-4 rounded-xl border border-white/10 bg-base-850 p-6">
+      <div className="flex items-center gap-4 rounded-xl border border-ink/10 bg-card p-6">
         <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-full bg-crimson-600 text-xl font-semibold">
           {username[0]}
         </div>
         <div>
           <h1 className="text-xl font-semibold">@{username}</h1>
-          <p className="text-sm text-white/50">
+          <p className="text-sm text-ink/50">
             {allRatings.length} rated · {reviews.length} review{reviews.length !== 1 ? 's' : ''} · {avgRating} avg
           </p>
         </div>
