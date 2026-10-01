@@ -23,6 +23,10 @@ import Settings from './pages/Settings';
 import Stats from './pages/Stats';
 import Lists from './pages/Lists';
 import ListDetail from './pages/ListDetail';
+import Privacy from './pages/info/Privacy';
+import Terms from './pages/info/Terms';
+import HelpCenter from './pages/info/HelpCenter';
+import Contact from './pages/info/Contact';
 import NotFound from './pages/NotFound';
 
 // Logged-out visitors get the marketing landing page at "/";
@@ -120,6 +124,10 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/privacy" element={<Privacy />} />
+        <Route path="/terms" element={<Terms />} />
+        <Route path="/help" element={<HelpCenter />} />
+        <Route path="/contact" element={<Contact />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <Footer />
