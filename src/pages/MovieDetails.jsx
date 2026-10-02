@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { Play, Plus, Check, Lock, LockOpen, ListPlus } from 'lucide-react';
 import {
   getMovieDetails,
@@ -23,6 +23,7 @@ import { useToast } from '../context/ToastContext';
 export default function MovieDetails() {
   const { mediaType, id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const { showToast } = useToast();
 
@@ -35,35 +36,67 @@ export default function MovieDetails() {
   const [myReview, setMyReview] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [notFound, setNotFound] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
 
   const validMediaType = mediaType === 'movie' || mediaType === 'tv';
 
   useEffect(() => {
-    if (!validMediaType) return;
+    if (!validMediaType) return undefined;
+    let cancelled = false;
     setLoading(true);
     setError(false);
+    setNotFound(false);
+    // Clear per-title state so the previous title's watchlist/review status
+    // can't show up on the next one while the new data loads.
+    setInWatchlist(false);
+    setInPrivateList(false);
+    setMyReview(null);
+
     const fetcher = mediaType === 'tv' ? getTvDetails : getMovieDetails;
     fetcher(id)
       .then((details) => {
-        setData(details);
+        if (cancelled) return;
+        // TMDb detail responses don't include media_type, so attach it —
+        // everything downstream (lists, reviews) keys off it.
+        setData({ ...details, media_type: mediaType });
         setLoading(false);
       })
-      .catch(() => {
-        setError(true);
+      .catch((err) => {
+        if (cancelled) return;
+        if (err.status === 404) setNotFound(true);
+        else setError(true);
         setLoading(false);
       });
     window.scrollTo(0, 0);
+    return () => {
+      cancelled = true;
+    };
   }, [mediaType, id, reloadKey, validMediaType]);
 
   useEffect(() => {
-    if (!user || !data) return;
-    isInList(user.uid, 'watchlist', data.id).then(setInWatchlist);
-    isInList(user.uid, 'privateList', data.id).then(setInPrivateList);
-    getReview(user.uid, data.id).then(setMyReview);
+    if (!user || !data) return undefined;
+    let cancelled = false;
+    // Uses data.media_type (not the URL param) so this never queries with a
+    // stale `data` from the previous title.
+    Promise.all([
+      isInList(user.uid, 'watchlist', data.media_type, data.id),
+      isInList(user.uid, 'privateList', data.media_type, data.id),
+      getReview(user.uid, data.media_type, data.id),
+    ])
+      .then(([inW, inP, review]) => {
+        if (cancelled) return;
+        setInWatchlist(inW);
+        setInPrivateList(inP);
+        setMyReview(review);
+      })
+      .catch((err) => console.error('Failed to load your list status:', err));
+    return () => {
+      cancelled = true;
+    };
   }, [user, data]);
 
-  if (!validMediaType) return <NotFound />;
+  if (!validMediaType || notFound) return <NotFound />;
   if (loading) return <LoadingSpinner label="Loading title…" />;
   if (error || !data) {
     return <ErrorState title="Couldn't load this title" onRetry={() => setReloadKey((k) => k + 1)} />;
@@ -81,21 +114,27 @@ export default function MovieDetails() {
   const providers = providerResults[detectedRegion] || providerResults.US;
 
   const requireAuth = () => {
-    if (!user) navigate('/login');
+    // Send them back here after they log in.
+    if (!user) navigate('/login', { state: { from: location.pathname } });
     return !!user;
   };
 
   const toggleList = async (listName, isIn, setIsIn) => {
     if (!requireAuth()) return;
     const label = listName === 'watchlist' ? 'Watchlist' : 'Private List';
-    if (isIn) {
-      await removeFromList(user.uid, listName, data.id);
-      showToast(`Removed from ${label}`);
-    } else {
-      await addToList(user.uid, listName, { ...data, media_type: mediaType });
-      showToast(`Added to ${label}`);
+    try {
+      if (isIn) {
+        await removeFromList(user.uid, listName, data.media_type, data.id);
+        showToast(`Removed from ${label}`);
+      } else {
+        await addToList(user.uid, listName, data);
+        showToast(`Added to ${label}`);
+      }
+      setIsIn(!isIn);
+    } catch (err) {
+      console.error('Failed to update list:', err);
+      showToast(`Couldn't update your ${label}`, { type: 'error' });
     }
-    setIsIn(!isIn);
   };
 
   return (
@@ -277,7 +316,7 @@ export default function MovieDetails() {
 
       {reviewOpen && (
         <MovieQuickView
-          item={{ ...data, media_type: mediaType }}
+          item={data}
           initialMode="review"
           onClose={() => setReviewOpen(false)}
           onPlayTrailer={() => setTrailerOpen(true)}
@@ -285,7 +324,7 @@ export default function MovieDetails() {
         />
       )}
       {listModalOpen && (
-        <AddToListModal item={{ ...data, media_type: mediaType }} onClose={() => setListModalOpen(false)} />
+        <AddToListModal item={data} onClose={() => setListModalOpen(false)} />
       )}
     </div>
   );
