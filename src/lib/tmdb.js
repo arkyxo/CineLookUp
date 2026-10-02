@@ -22,6 +22,23 @@ export const GENRE_IDS = {
 const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 const memCache = new Map();
 
+// Earlier versions used the full request URL (including ?api_key=...) as the
+// cache key, which wrote the API key into localStorage key names. Clear those
+// out once on load; new entries are keyed without the key.
+try {
+  Object.keys(localStorage)
+    .filter((k) => k.startsWith('tmdb-cache:') && k.includes('api_key='))
+    .forEach((k) => localStorage.removeItem(k));
+} catch {
+  // localStorage unavailable — nothing to clean up.
+}
+
+// ---- Item identity helpers ----
+// TMDb ids are only unique *within* a media type (movie 550 and tv 550 are
+// different titles), so anything stored per-title needs the type in its key.
+export const mediaTypeOf = (item) => item.media_type || (item.title ? 'movie' : 'tv');
+export const itemKey = (mediaType, id) => `${mediaType}-${id}`;
+
 function cacheGet(key) {
   const mem = memCache.get(key);
   if (mem && Date.now() - mem.time < CACHE_TTL) return mem.data;
@@ -59,13 +76,18 @@ async function tmdbFetch(endpoint, params = {}) {
     if (v !== undefined && v !== null) url.searchParams.set(k, v);
   });
 
-  const cacheKey = url.toString();
+  // Cache key must not contain the API key.
+  const keyUrl = new URL(url);
+  keyUrl.searchParams.delete('api_key');
+  const cacheKey = keyUrl.toString();
   const cached = cacheGet(cacheKey);
   if (cached) return cached;
 
-  const res = await fetch(cacheKey);
+  const res = await fetch(url);
   if (!res.ok) {
-    throw new Error(`TMDb request failed (${res.status}): ${endpoint}`);
+    const err = new Error(`TMDb request failed (${res.status}): ${endpoint}`);
+    err.status = res.status; // lets callers tell a 404 apart from a network failure
+    throw err;
   }
   const data = await res.json();
   cacheSet(cacheKey, data);

@@ -26,6 +26,7 @@ import {
   runTransaction,
   onSnapshot,
 } from 'firebase/firestore';
+import { itemKey, mediaTypeOf } from './tmdb';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -109,32 +110,64 @@ export const changePassword = async (currentPassword, newPassword) => {
   await updatePassword(auth.currentUser, newPassword);
 };
 
-// ---- Per-user lists: users/{uid}/{listName}/{movieId} ----
+// ---- Per-user lists: users/{uid}/{listName}/{itemKey} ----
 // listName is one of: "watchlist", "privateList", "ratings"
+// itemKey is `${mediaType}-${tmdbId}` (e.g. "movie-550", "tv-550") because TMDb
+// ids are only unique per media type. Documents written by older versions used
+// the bare TMDb id as the doc ID; `locate` below still finds those so existing
+// data keeps working (and gets updated in place rather than duplicated).
 
-const listDoc = (uid, listName, movieId) => doc(db, 'users', uid, listName, String(movieId));
+const listDoc = (uid, listName, key) => doc(db, 'users', uid, listName, String(key));
 
-export const addToList = (uid, listName, item) =>
-  setDoc(listDoc(uid, listName, item.id), {
-    id: item.id,
-    mediaType: item.media_type || 'movie',
-    title: item.title || item.name,
-    posterPath: item.poster_path || null,
-    voteAverage: item.vote_average ?? null,
-    releaseDate: item.release_date || item.first_air_date || null,
-    genreIds: item.genre_ids || (item.genres || []).map((g) => g.id),
-    addedAt: Date.now(),
-  });
+// Find the doc for an item: new-style key first, then a legacy bare-id doc
+// as long as it belongs to the same media type. Returns { ref, snap }; if
+// neither exists, ref points at the new-style key (where a write should go).
+async function locate(refFor, mediaType, id) {
+  const current = refFor(itemKey(mediaType, id));
+  const currentSnap = await getDoc(current);
+  if (currentSnap.exists()) return { ref: current, snap: currentSnap };
 
-export const removeFromList = (uid, listName, movieId) => deleteDoc(listDoc(uid, listName, movieId));
+  const legacy = refFor(String(id));
+  const legacySnap = await getDoc(legacy);
+  if (legacySnap.exists() && (legacySnap.data().mediaType || 'movie') === mediaType) {
+    return { ref: legacy, snap: legacySnap };
+  }
+  return { ref: current, snap: currentSnap };
+}
 
-export const getList = async (uid, listName) => {
-  const snap = await getDocs(collection(db, 'users', uid, listName));
-  return snap.docs.map((d) => d.data());
+const listRef = (uid, listName) => (key) => listDoc(uid, listName, key);
+
+// Shape shared by watchlist / privateList / custom list items.
+const itemFields = (item) => ({
+  id: item.id,
+  mediaType: mediaTypeOf(item),
+  title: item.title || item.name,
+  posterPath: item.poster_path || null,
+  voteAverage: item.vote_average ?? null,
+  releaseDate: item.release_date || item.first_air_date || null,
+  genreIds: item.genre_ids || (item.genres || []).map((g) => g.id),
+  addedAt: Date.now(),
+});
+
+export const addToList = async (uid, listName, item) => {
+  const { ref } = await locate(listRef(uid, listName), mediaTypeOf(item), item.id);
+  await setDoc(ref, itemFields(item));
 };
 
-export const isInList = async (uid, listName, movieId) => {
-  const snap = await getDoc(listDoc(uid, listName, movieId));
+export const removeFromList = async (uid, listName, mediaType, movieId) => {
+  const { ref } = await locate(listRef(uid, listName), mediaType, movieId);
+  await deleteDoc(ref);
+};
+
+// Every returned item carries `key` (its real Firestore doc ID) — use it for
+// React keys, and as the review key for comments/likes.
+export const getList = async (uid, listName) => {
+  const snap = await getDocs(collection(db, 'users', uid, listName));
+  return snap.docs.map((d) => ({ ...d.data(), key: d.id }));
+};
+
+export const isInList = async (uid, listName, mediaType, movieId) => {
+  const { snap } = await locate(listRef(uid, listName), mediaType, movieId);
   return snap.exists();
 };
 
@@ -142,10 +175,13 @@ export const isInList = async (uid, listName, movieId) => {
 // Public: any signed-in user can read anyone's review (enforced in Firestore
 // rules), but only the owner can write their own.
 
-export const setReview = (uid, item, rating, reviewText, username) =>
-  setDoc(listDoc(uid, 'ratings', item.id), {
+export const setReview = async (uid, item, rating, reviewText, username) => {
+  // locate() reuses an existing (possibly legacy) doc so editing a review keeps
+  // its comments and likes attached.
+  const { ref } = await locate(listRef(uid, 'ratings'), mediaTypeOf(item), item.id);
+  await setDoc(ref, {
     id: item.id,
-    mediaType: item.media_type || 'movie',
+    mediaType: mediaTypeOf(item),
     title: item.title || item.name,
     posterPath: item.poster_path || null,
     releaseDate: item.release_date || item.first_air_date || null,
@@ -155,10 +191,11 @@ export const setReview = (uid, item, rating, reviewText, username) =>
     username: username || 'Anonymous',
     ratedAt: Date.now(),
   });
+};
 
-export const getReview = async (uid, movieId) => {
-  const snap = await getDoc(listDoc(uid, 'ratings', movieId));
-  return snap.exists() ? snap.data() : null;
+export const getReview = async (uid, mediaType, movieId) => {
+  const { snap } = await locate(listRef(uid, 'ratings'), mediaType, movieId);
+  return snap.exists() ? { ...snap.data(), key: snap.id } : null;
 };
 
 // Public feed across every user's reviews, newest first. Sorted client-side
@@ -169,22 +206,25 @@ export const getReview = async (uid, movieId) => {
 export const getAllReviews = async (max = 100) => {
   const snap = await getDocs(collectionGroup(db, 'ratings'));
   return snap.docs
-    .map((d) => ({ ...d.data(), reviewerUid: d.ref.parent.parent.id }))
+    .map((d) => ({ ...d.data(), key: d.id, reviewerUid: d.ref.parent.parent.id }))
     .filter((r) => r.review && r.review.trim().length > 0)
     .sort((a, b) => (b.ratedAt || 0) - (a.ratedAt || 0))
     .slice(0, max);
 };
 
-// ---- Side comments on a review: users/{reviewerUid}/ratings/{movieId}/comments/{commentId} ----
+// ---- Side comments on a review: users/{reviewerUid}/ratings/{reviewKey}/comments/{commentId} ----
+// `reviewKey` is the review doc's real ID (the `key` field on review objects).
 // Any signed-in user can read and post; only the comment's own author can delete it.
 // A reply is just a comment with `parentId` set to the comment it's replying
 // to — reusing the same collection/rules instead of adding a new one.
 
-const commentsCollection = (reviewerUid, movieId) =>
-  collection(db, 'users', reviewerUid, 'ratings', String(movieId), 'comments');
+const commentsCollection = (reviewerUid, reviewKey) =>
+  collection(db, 'users', reviewerUid, 'ratings', String(reviewKey), 'comments');
 
-export const addComment = async (reviewerUid, movieId, text, author, movieInfo = {}, parent = null) => {
-  await addDoc(commentsCollection(reviewerUid, movieId), {
+// Returns the new comment's ID so callers can show it immediately (and reply to it).
+// movieInfo: { id, title, mediaType } — used for the notification's link.
+export const addComment = async (reviewerUid, reviewKey, text, author, movieInfo = {}, parent = null) => {
+  const ref = await addDoc(commentsCollection(reviewerUid, reviewKey), {
     text,
     uid: author.uid,
     username: author.username || 'Anonymous',
@@ -197,35 +237,38 @@ export const addComment = async (reviewerUid, movieId, text, author, movieInfo =
     type: parent ? 'reply' : 'comment',
     fromUid: author.uid,
     fromUsername: author.username || 'Anonymous',
-    movieId,
+    movieId: movieInfo.id,
     movieTitle: movieInfo.title || '',
     mediaType: movieInfo.mediaType || 'movie',
     text,
   }).catch((err) => console.error('Failed to create notification:', err));
+
+  return ref.id;
 };
 
-export const getComments = async (reviewerUid, movieId) => {
-  const snap = await getDocs(commentsCollection(reviewerUid, movieId));
+export const getComments = async (reviewerUid, reviewKey) => {
+  const snap = await getDocs(commentsCollection(reviewerUid, reviewKey));
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }))
     .sort((a, b) => a.createdAt - b.createdAt);
 };
 
-// ---- Likes on a review: users/{reviewerUid}/ratings/{movieId}/likes/{likerUid} ----
+// ---- Likes on a review: users/{reviewerUid}/ratings/{reviewKey}/likes/{likerUid} ----
 // Doc ID is the liker's own uid, so "have I liked this" is a single getDoc,
 // and a user can only ever create/delete their own like (enforced in rules).
 
-const likeDoc = (reviewerUid, movieId, likerUid) =>
-  doc(db, 'users', reviewerUid, 'ratings', String(movieId), 'likes', likerUid);
+const likeDoc = (reviewerUid, reviewKey, likerUid) =>
+  doc(db, 'users', reviewerUid, 'ratings', String(reviewKey), 'likes', likerUid);
 
-export const getLikes = async (reviewerUid, movieId) => {
-  const snap = await getDocs(collection(db, 'users', reviewerUid, 'ratings', String(movieId), 'likes'));
+export const getLikes = async (reviewerUid, reviewKey) => {
+  const snap = await getDocs(collection(db, 'users', reviewerUid, 'ratings', String(reviewKey), 'likes'));
   return snap.docs.map((d) => d.id); // array of uids who liked it
 };
 
 // Toggles the current user's like on a review, returns the new liked state.
-export const toggleLike = async (reviewerUid, movieId, likerUid, likerUsername, movieInfo = {}) => {
-  const ref = likeDoc(reviewerUid, movieId, likerUid);
+// movieInfo: { id, title, mediaType } — used for the notification's link.
+export const toggleLike = async (reviewerUid, reviewKey, likerUid, likerUsername, movieInfo = {}) => {
+  const ref = likeDoc(reviewerUid, reviewKey, likerUid);
   const snap = await getDoc(ref);
   if (snap.exists()) {
     await deleteDoc(ref);
@@ -236,7 +279,7 @@ export const toggleLike = async (reviewerUid, movieId, likerUid, likerUsername, 
     type: 'like',
     fromUid: likerUid,
     fromUsername: likerUsername || 'Anonymous',
-    movieId,
+    movieId: movieInfo.id,
     movieTitle: movieInfo.title || '',
     mediaType: movieInfo.mediaType || 'movie',
   }).catch((err) => console.error('Failed to create notification:', err));
@@ -298,7 +341,7 @@ export const markAllNotificationsRead = async (uid) => {
 
 // ---- Custom curated lists: users/{uid}/customLists/{listId} ----
 // Each list has its own items subcollection:
-// users/{uid}/customLists/{listId}/items/{movieId}
+// users/{uid}/customLists/{listId}/items/{itemKey}   (itemKey = `${mediaType}-${tmdbId}`)
 // Private to the owner only — same access pattern as Watchlist/Private List.
 // (No public/shareable lists yet — that'd need cross-user read rules on the
 // items subcollection, a bigger change saved for later.)
@@ -331,30 +374,26 @@ export const deleteCustomList = async (uid, listId) => {
   await deleteDoc(doc(db, 'users', uid, 'customLists', listId));
 };
 
-const customListItemDoc = (uid, listId, movieId) =>
-  doc(db, 'users', uid, 'customLists', listId, 'items', String(movieId));
+const customItemRef = (uid, listId) => (key) =>
+  doc(db, 'users', uid, 'customLists', listId, 'items', String(key));
 
-export const addToCustomList = (uid, listId, item) =>
-  setDoc(customListItemDoc(uid, listId, item.id), {
-    id: item.id,
-    mediaType: item.media_type || 'movie',
-    title: item.title || item.name,
-    posterPath: item.poster_path || null,
-    voteAverage: item.vote_average ?? null,
-    releaseDate: item.release_date || item.first_air_date || null,
-    genreIds: item.genre_ids || (item.genres || []).map((g) => g.id),
-    addedAt: Date.now(),
-  });
+export const addToCustomList = async (uid, listId, item) => {
+  const { ref } = await locate(customItemRef(uid, listId), mediaTypeOf(item), item.id);
+  await setDoc(ref, itemFields(item));
+};
 
-export const removeFromCustomList = (uid, listId, movieId) => deleteDoc(customListItemDoc(uid, listId, movieId));
+export const removeFromCustomList = async (uid, listId, mediaType, movieId) => {
+  const { ref } = await locate(customItemRef(uid, listId), mediaType, movieId);
+  await deleteDoc(ref);
+};
 
 export const getCustomListItems = async (uid, listId) => {
   const snap = await getDocs(collection(db, 'users', uid, 'customLists', listId, 'items'));
-  return snap.docs.map((d) => d.data());
+  return snap.docs.map((d) => ({ ...d.data(), key: d.id }));
 };
 
-export const isInCustomList = async (uid, listId, movieId) => {
-  const snap = await getDoc(customListItemDoc(uid, listId, movieId));
+export const isInCustomList = async (uid, listId, mediaType, movieId) => {
+  const { snap } = await locate(customItemRef(uid, listId), mediaType, movieId);
   return snap.exists();
 };
 
