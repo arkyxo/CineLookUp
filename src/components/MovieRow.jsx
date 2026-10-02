@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import MovieCard from './MovieCard';
+import { itemKey, mediaTypeOf } from '../lib/tmdb';
 
 export default function MovieRow({ title, items, watchlistIds, onToggleWatchlist, onOpenModal }) {
   const scrollRef = useRef(null);
@@ -28,7 +29,7 @@ export default function MovieRow({ title, items, watchlistIds, onToggleWatchlist
           <MovieCard
             key={`${item.media_type || 'movie'}-${item.id}`}
             item={item}
-            inWatchlist={watchlistIds?.has(item.id)}
+            inWatchlist={watchlistIds?.has(itemKey(mediaTypeOf(item), item.id))}
             onToggleWatchlist={onToggleWatchlist}
             onOpenModal={onOpenModal}
           />
