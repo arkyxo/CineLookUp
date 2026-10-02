@@ -87,7 +87,7 @@ export default function PublicProfile() {
         {reviews.length === 0 ? (
           <EmptyState title="No reviews yet" subtitle={`@${username} hasn't written any reviews.`} />
         ) : (
-          reviews.map((r) => <ReviewCard key={r.id} review={r} />)
+          reviews.map((r) => <ReviewCard key={r.key} review={r} />)
         )}
       </div>
     </div>
