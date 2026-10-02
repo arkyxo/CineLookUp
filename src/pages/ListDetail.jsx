@@ -23,10 +23,15 @@ export default function ListDetail() {
   }, [user, listId]);
 
   const handleRemove = (item) => {
-    removeFromCustomList(user.uid, listId, item.id).then(() => {
-      setItems((prev) => prev.filter((i) => i.id !== item.id));
-      showToast('Removed from list');
-    });
+    removeFromCustomList(user.uid, listId, item.mediaType || 'movie', item.id)
+      .then(() => {
+        setItems((prev) => prev.filter((i) => i.key !== item.key));
+        showToast('Removed from list');
+      })
+      .catch((err) => {
+        console.error('Failed to remove item:', err);
+        showToast("Couldn't remove that title", { type: 'error' });
+      });
   };
 
   const handleDeleteList = async () => {
@@ -74,7 +79,7 @@ export default function ListDetail() {
       ) : (
         <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
           {items.map((item) => (
-            <div key={item.id} className="group relative">
+            <div key={item.key} className="group relative">
               <div
                 className="aspect-[2/3] cursor-pointer overflow-hidden rounded-lg bg-elevated"
                 onClick={() => navigate(`/${item.mediaType}/${item.id}`)}
