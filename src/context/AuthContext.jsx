@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { watchAuthState } from '../lib/firebase';
 
 const AuthContext = createContext({ user: null, loading: true });
@@ -15,7 +15,9 @@ export function AuthProvider({ children }) {
     return unsubscribe;
   }, []);
 
-  return <AuthContext.Provider value={{ user, loading }}>{children}</AuthContext.Provider>;
+  const value = useMemo(() => ({ user, loading }), [user, loading]);
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export const useAuth = () => useContext(AuthContext);
