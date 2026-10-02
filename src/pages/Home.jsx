@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Hero from '../components/Hero';
 import MovieRow from '../components/MovieRow';
 import TrailerModal from '../components/TrailerModal';
@@ -13,8 +14,11 @@ import {
   discoverByGenre,
   getGenreList,
   getMovieDetails,
+  getTvDetails,
   getRecommendations,
   getTrailerKey,
+  itemKey,
+  mediaTypeOf,
   GENRE_IDS,
 } from '../lib/tmdb';
 import { useAuth } from '../context/AuthContext';
@@ -24,6 +28,8 @@ import { useToast } from '../context/ToastContext';
 export default function Home() {
   const { user } = useAuth();
   const { showToast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [hero, setHero] = useState(null);
   const [rows, setRows] = useState([]);
   const [watchlistIds, setWatchlistIds] = useState(new Set());
@@ -76,7 +82,9 @@ export default function Home() {
           const ratings = await getList(user.uid, 'ratings');
           if (ratings.length > 0) {
             const top = [...ratings].sort((a, b) => b.rating - a.rating)[0];
-            const recs = await getRecommendations(top.id, 'movie');
+            // Seed from the title's real media type — a top-rated TV show must
+            // use the TV recommendations endpoint, not the movie one.
+            const recs = await getRecommendations(top.id, top.mediaType || 'movie');
             if (recs.results?.length > 0) {
               builtRows.unshift({ title: 'Recommended For You', items: recs.results });
               setRatedButNoRecs(false);
@@ -114,35 +122,56 @@ export default function Home() {
       setWatchlistIds(new Set());
       return;
     }
-    getList(user.uid, 'watchlist').then((items) => setWatchlistIds(new Set(items.map((i) => i.id))));
+    // Set of `${mediaType}-${id}` keys so a movie and a show that share a TMDb
+    // id aren't confused with each other.
+    getList(user.uid, 'watchlist')
+      .then((items) => setWatchlistIds(new Set(items.map((i) => itemKey(i.mediaType || 'movie', i.id)))))
+      .catch((err) => console.error('Failed to load watchlist:', err));
   }, [user]);
 
   const toggleWatchlist = useCallback(
     async (item) => {
       if (!user) {
-        window.location.assign('/login');
+        navigate('/login', { state: { from: location.pathname } });
         return;
       }
-      const has = watchlistIds.has(item.id);
-      const next = new Set(watchlistIds);
-      if (has) {
-        next.delete(item.id);
-        await removeFromList(user.uid, 'watchlist', item.id);
-        showToast('Removed from Watchlist');
-      } else {
-        next.add(item.id);
-        await addToList(user.uid, 'watchlist', item);
-        showToast('Added to Watchlist');
+      const mediaType = mediaTypeOf(item);
+      const key = itemKey(mediaType, item.id);
+      const has = watchlistIds.has(key);
+      try {
+        if (has) {
+          await removeFromList(user.uid, 'watchlist', mediaType, item.id);
+          showToast('Removed from Watchlist');
+        } else {
+          await addToList(user.uid, 'watchlist', item);
+          showToast('Added to Watchlist');
+        }
+        setWatchlistIds((prev) => {
+          const next = new Set(prev);
+          if (has) next.delete(key);
+          else next.add(key);
+          return next;
+        });
+      } catch (err) {
+        console.error('Failed to update watchlist:', err);
+        showToast("Couldn't update your Watchlist", { type: 'error' });
       }
-      setWatchlistIds(next);
     },
-    [user, watchlistIds, showToast]
+    [user, watchlistIds, showToast, navigate, location.pathname]
   );
 
   const playTrailer = async (item) => {
-    const details = await getMovieDetails(item.id);
-    const key = getTrailerKey(details.videos);
-    setTrailer(key ? { key, title: item.title || item.name } : null);
+    try {
+      // Recommendation rows can contain TV shows, so fetch from the right endpoint.
+      const details =
+        mediaTypeOf(item) === 'tv' ? await getTvDetails(item.id) : await getMovieDetails(item.id);
+      const key = getTrailerKey(details.videos);
+      setTrailer(key ? { key, title: item.title || item.name } : null);
+      if (!key) showToast('No trailer available for this title', { type: 'error' });
+    } catch (err) {
+      console.error('Failed to load trailer:', err);
+      showToast("Couldn't load the trailer", { type: 'error' });
+    }
   };
 
   if (error) {
@@ -164,7 +193,12 @@ export default function Home() {
 
   return (
     <div className="pb-16">
-      <Hero item={hero} inWatchlist={watchlistIds.has(hero?.id)} onToggleWatchlist={toggleWatchlist} onPlayTrailer={playTrailer} />
+      <Hero
+        item={hero}
+        inWatchlist={hero ? watchlistIds.has(itemKey(mediaTypeOf(hero), hero.id)) : false}
+        onToggleWatchlist={toggleWatchlist}
+        onPlayTrailer={playTrailer}
+      />
 
       {ratedButNoRecs && (
         <p className="mx-4 mt-6 rounded-lg border border-ink/10 bg-card px-4 py-3 text-sm text-ink/60 sm:mx-8">
