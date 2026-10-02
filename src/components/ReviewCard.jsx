@@ -24,9 +24,14 @@ export default function ReviewCard({ review }) {
 
   const goToTitle = () => navigate(`/${review.mediaType || 'movie'}/${review.id}`);
 
+  // The review doc's real ID (`${mediaType}-${tmdbId}`, or a bare id for older
+  // reviews) — comments and likes live under it.
+  const reviewKey = review.key || String(review.id);
+  const movieInfo = { id: review.id, title: review.title, mediaType: review.mediaType };
+
   useEffect(() => {
     let cancelled = false;
-    getComments(review.reviewerUid, review.id)
+    getComments(review.reviewerUid, reviewKey)
       .then((list) => {
         if (!cancelled) setComments(list);
       })
@@ -34,7 +39,7 @@ export default function ReviewCard({ review }) {
         console.error('Failed to load comments:', err);
         if (!cancelled) setComments([]);
       });
-    getLikes(review.reviewerUid, review.id)
+    getLikes(review.reviewerUid, reviewKey)
       .then((list) => {
         if (!cancelled) setLikes(list);
       })
@@ -45,7 +50,7 @@ export default function ReviewCard({ review }) {
     return () => {
       cancelled = true;
     };
-  }, [review.reviewerUid, review.id]);
+  }, [review.reviewerUid, reviewKey]);
 
   const liked = !!(user && likes?.includes(user.uid));
 
@@ -53,10 +58,7 @@ export default function ReviewCard({ review }) {
     if (!user || likeBusy) return;
     setLikeBusy(true);
     try {
-      const nowLiked = await toggleLike(review.reviewerUid, review.id, user.uid, user.displayName, {
-        title: review.title,
-        mediaType: review.mediaType,
-      });
+      const nowLiked = await toggleLike(review.reviewerUid, reviewKey, user.uid, user.displayName, movieInfo);
       setLikes((prev) =>
         nowLiked ? [...(prev || []), user.uid] : (prev || []).filter((id) => id !== user.uid)
       );
@@ -73,16 +75,16 @@ export default function ReviewCard({ review }) {
     setPosting(true);
     const text = draft.trim();
     try {
-      await addComment(
+      const id = await addComment(
         review.reviewerUid,
-        review.id,
+        reviewKey,
         text,
         { uid: user.uid, username: user.displayName },
-        { title: review.title, mediaType: review.mediaType }
+        movieInfo
       );
       setComments((prev) => [
         ...(prev || []),
-        { text, uid: user.uid, username: user.displayName, createdAt: Date.now(), parentId: null },
+        { id, text, uid: user.uid, username: user.displayName, createdAt: Date.now(), parentId: null },
       ]);
       setDraft('');
     } catch (err) {
@@ -98,17 +100,18 @@ export default function ReviewCard({ review }) {
     setPostingReply(true);
     const text = replyDraft.trim();
     try {
-      await addComment(
+      const id = await addComment(
         review.reviewerUid,
-        review.id,
+        reviewKey,
         text,
         { uid: user.uid, username: user.displayName },
-        { title: review.title, mediaType: review.mediaType },
+        movieInfo,
         { id: parentComment.id, uid: parentComment.uid, username: parentComment.username }
       );
       setComments((prev) => [
         ...(prev || []),
         {
+          id,
           text,
           uid: user.uid,
           username: user.displayName,
