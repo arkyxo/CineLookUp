@@ -23,6 +23,10 @@ import {
   getDocs,
   collection,
   collectionGroup,
+  query,
+  orderBy,
+  limit,
+  startAfter,
   runTransaction,
   onSnapshot,
 } from 'firebase/firestore';
@@ -198,18 +202,40 @@ export const getReview = async (uid, mediaType, movieId) => {
   return snap.exists() ? { ...snap.data(), key: snap.id } : null;
 };
 
-// Public feed across every user's reviews, newest first. Sorted client-side
-// rather than with a Firestore orderBy, since collection-group queries with
-// orderBy require a dedicated index — this avoids that setup step entirely.
-// Older rating entries saved before this feature existed won't have review
-// text, so they're filtered out rather than cluttering the feed.
-export const getAllReviews = async (max = 100) => {
-  const snap = await getDocs(collectionGroup(db, 'ratings'));
-  return snap.docs
-    .map((d) => ({ ...d.data(), key: d.id, reviewerUid: d.ref.parent.parent.id }))
-    .filter((r) => r.review && r.review.trim().length > 0)
-    .sort((a, b) => (b.ratedAt || 0) - (a.ratedAt || 0))
-    .slice(0, max);
+// Public feed across every user's reviews, newest first, one page at a time.
+// Uses a server-side orderBy + limit (+ startAfter cursor) so the client only
+// reads a page of documents instead of the entire collection group — the old
+// version downloaded every review ever written and sliced to 100 locally.
+//
+// NOTE: ordering a collection-group query needs a collection-group index on
+// `ratings.ratedAt` — see firestore.indexes.json.
+//
+// Ratings saved without review text are skipped. To keep pages from coming
+// back near-empty when many are skipped, this keeps reading until it has a
+// full page (bounded by MAX_ROUNDS), then returns a cursor for the next page.
+const MAX_ROUNDS = 5;
+
+export const getReviewsPage = async (pageSize = 20, cursor = null) => {
+  const reviews = [];
+  let last = cursor;
+  let exhausted = false;
+
+  for (let round = 0; round < MAX_ROUNDS && reviews.length < pageSize && !exhausted; round++) {
+    const constraints = [orderBy('ratedAt', 'desc'), ...(last ? [startAfter(last)] : []), limit(pageSize)];
+    const snap = await getDocs(query(collectionGroup(db, 'ratings'), ...constraints));
+
+    snap.docs.forEach((d) => {
+      const data = d.data();
+      if (data.review && data.review.trim().length > 0) {
+        reviews.push({ ...data, key: d.id, reviewerUid: d.ref.parent.parent.id });
+      }
+    });
+
+    if (snap.docs.length > 0) last = snap.docs[snap.docs.length - 1];
+    if (snap.docs.length < pageSize) exhausted = true;
+  }
+
+  return { reviews, cursor: last, hasMore: !exhausted };
 };
 
 // ---- Side comments on a review: users/{reviewerUid}/ratings/{reviewKey}/comments/{commentId} ----
