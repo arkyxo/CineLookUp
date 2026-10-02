@@ -16,17 +16,29 @@ export default function SearchBox({ onNavigate, className = '' }) {
       setSuggestions([]);
       return undefined;
     }
+    // `cancelled` stops a slow response for an older query from overwriting
+    // the suggestions for what's currently typed.
+    let cancelled = false;
     // Wait for a pause in typing before hitting the API, instead of firing a
     // request on every keystroke.
     debounceRef.current = setTimeout(() => {
-      searchMulti(query.trim()).then((res) => {
-        const filtered = res.results
-          .filter((r) => (r.media_type === 'person' ? r.profile_path : r.poster_path))
-          .slice(0, 6);
-        setSuggestions(filtered);
-      });
+      searchMulti(query.trim())
+        .then((res) => {
+          if (cancelled) return;
+          const filtered = res.results
+            .filter((r) => (r.media_type === 'person' ? r.profile_path : r.poster_path))
+            .slice(0, 6);
+          setSuggestions(filtered);
+        })
+        .catch((err) => {
+          console.error('Search suggestions failed:', err);
+          if (!cancelled) setSuggestions([]);
+        });
     }, 400);
-    return () => clearTimeout(debounceRef.current);
+    return () => {
+      cancelled = true;
+      clearTimeout(debounceRef.current);
+    };
   }, [query]);
 
   const goToResult = (item) => {
