@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X, Play, Info, Star, ArrowLeft } from 'lucide-react';
-import { imageUrl } from '../lib/tmdb';
+import { imageUrl, mediaTypeOf } from '../lib/tmdb';
 import { useAuth } from '../context/AuthContext';
 import { getReview, setReview } from '../lib/firebase';
 import { useToast } from '../context/ToastContext';
@@ -18,24 +18,42 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
   const [draftText, setDraftText] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const itemId = item?.id;
+  const mediaType = item ? mediaTypeOf(item) : null;
+
+  // These effects depend on the title's identity (id + type), NOT the `item`
+  // object. Parents often pass a freshly-built object on every render (e.g.
+  // `{ ...data, media_type }`), and depending on it here reset the mode and
+  // wiped the draft whenever the parent re-rendered (a toast appearing, etc).
   useEffect(() => {
     setMode(initialMode);
-  }, [item, initialMode]);
+  }, [itemId, mediaType, initialMode]);
 
   useEffect(() => {
-    if (!item || !user) return;
-    getReview(user.uid, item.id).then((existing) => {
-      setMyReview(existing);
-      setDraftRating(existing?.rating || 0);
-      setDraftText(existing?.review || '');
-    });
-  }, [item, user]);
+    // New title (or modal closed): start from a clean slate.
+    setMyReview(null);
+    setDraftRating(0);
+    setDraftText('');
+    if (!itemId || !user) return undefined;
+
+    let cancelled = false;
+    getReview(user.uid, mediaType, itemId)
+      .then((existing) => {
+        if (cancelled) return;
+        setMyReview(existing);
+        setDraftRating(existing?.rating || 0);
+        setDraftText(existing?.review || '');
+      })
+      .catch((err) => console.error('Failed to load your review:', err));
+    return () => {
+      cancelled = true;
+    };
+  }, [itemId, mediaType, user?.uid]);
 
   if (!item) return null;
 
   const title = item.title || item.name;
   const year = (item.release_date || item.first_air_date || '').slice(0, 4);
-  const mediaType = item.media_type || (item.title ? 'movie' : 'tv');
 
   const goToFullInfo = () => {
     onClose();
@@ -57,6 +75,9 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
       onReviewSaved?.(saved);
       showToast(myReview ? 'Review updated' : 'Review posted');
       setMode('info');
+    } catch (err) {
+      console.error('Failed to save review:', err);
+      showToast("Couldn't save your review", { type: 'error' });
     } finally {
       setSaving(false);
     }
