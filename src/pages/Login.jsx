@@ -20,7 +20,7 @@ export default function Login() {
     try {
       await logIn(email, password);
       reset();
-      navigate(location.state?.from || '/');
+      navigate(location.state?.from || '/', { replace: true });
     } catch (err) {
       registerFailure();
       setError(friendlyError(err.code));
