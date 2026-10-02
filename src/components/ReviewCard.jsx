@@ -218,6 +218,7 @@ export default function ReviewCard({ review }) {
                       onChange={(e) => setReplyDraft(e.target.value)}
                       onKeyDown={(e) => e.key === 'Enter' && postReply(c)}
                       placeholder={`Reply to @${c.username}…`}
+                      maxLength={500}
                       className="flex-1 rounded-md border border-ink/10 bg-ink/5 px-3 py-2 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
                     />
                     <button
@@ -249,7 +250,8 @@ export default function ReviewCard({ review }) {
                 onChange={(e) => setDraft(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && postComment()}
                 placeholder="Add a comment…"
-                className="flex-1 rounded-md border border-ink/10 bg-ink/5 px-3 py-2 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
+                maxLength={500}
+                      className="flex-1 rounded-md border border-ink/10 bg-ink/5 px-3 py-2 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
               />
               <button
                 onClick={postComment}
