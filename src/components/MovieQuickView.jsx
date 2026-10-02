@@ -179,6 +179,7 @@ export default function MovieQuickView({ item, onClose, onPlayTrailer, initialMo
                 onChange={(e) => setDraftText(e.target.value)}
                 placeholder="Write a review… (optional)"
                 rows={4}
+                maxLength={2000}
                 className="mt-3 w-full resize-none rounded-md border border-ink/10 bg-ink/5 px-3 py-2 text-sm outline-none placeholder:text-ink/30 focus:border-crimson-500"
               />
               <button
