@@ -40,7 +40,7 @@ export default function Reviews() {
       ) : (
         <div className="flex flex-col gap-4">
           {reviews.map((r) => (
-            <ReviewCard key={`${r.reviewerUid}-${r.id}`} review={r} />
+            <ReviewCard key={`${r.reviewerUid}-${r.key}`} review={r} />
           ))}
         </div>
       )}
