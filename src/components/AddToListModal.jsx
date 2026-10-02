@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X, Plus, Check, ListPlus } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { mediaTypeOf } from '../lib/tmdb';
 import {
   getCustomLists,
   createCustomList,
@@ -17,28 +18,44 @@ export default function AddToListModal({ item, onClose }) {
   const [membership, setMembership] = useState({});
   const [newName, setNewName] = useState('');
   const [creating, setCreating] = useState(false);
+  const mediaType = mediaTypeOf(item);
 
   useEffect(() => {
-    if (!user) return;
-    getCustomLists(user.uid).then(async (fetched) => {
-      setLists(fetched);
-      const entries = await Promise.all(
-        fetched.map(async (l) => [l.id, await isInCustomList(user.uid, l.id, item.id)])
-      );
-      setMembership(Object.fromEntries(entries));
-    });
-  }, [user, item.id]);
+    if (!user) return undefined;
+    let cancelled = false;
+    getCustomLists(user.uid)
+      .then(async (fetched) => {
+        const entries = await Promise.all(
+          fetched.map(async (l) => [l.id, await isInCustomList(user.uid, l.id, mediaType, item.id)])
+        );
+        if (cancelled) return;
+        setLists(fetched);
+        setMembership(Object.fromEntries(entries));
+      })
+      .catch((err) => {
+        console.error('Failed to load lists:', err);
+        if (!cancelled) setLists([]);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [user, item.id, mediaType]);
 
   const toggleList = async (listId) => {
     const isIn = membership[listId];
-    if (isIn) {
-      await removeFromCustomList(user.uid, listId, item.id);
-      showToast('Removed from list');
-    } else {
-      await addToCustomList(user.uid, listId, item);
-      showToast('Added to list');
+    try {
+      if (isIn) {
+        await removeFromCustomList(user.uid, listId, mediaType, item.id);
+        showToast('Removed from list');
+      } else {
+        await addToCustomList(user.uid, listId, item);
+        showToast('Added to list');
+      }
+      setMembership((prev) => ({ ...prev, [listId]: !isIn }));
+    } catch (err) {
+      console.error('Failed to update list:', err);
+      showToast("Couldn't update that list", { type: 'error' });
     }
-    setMembership((prev) => ({ ...prev, [listId]: !isIn }));
   };
 
   const handleCreate = async (e) => {
@@ -48,10 +65,13 @@ export default function AddToListModal({ item, onClose }) {
     try {
       const listId = await createCustomList(user.uid, newName.trim());
       await addToCustomList(user.uid, listId, item);
-      setLists((prev) => [{ id: listId, name: newName.trim(), createdAt: Date.now() }, ...prev]);
+      setLists((prev) => [{ id: listId, name: newName.trim(), createdAt: Date.now() }, ...(prev || [])]);
       setMembership((prev) => ({ ...prev, [listId]: true }));
       setNewName('');
       showToast('List created');
+    } catch (err) {
+      console.error('Failed to create list:', err);
+      showToast("Couldn't create the list", { type: 'error' });
     } finally {
       setCreating(false);
     }
